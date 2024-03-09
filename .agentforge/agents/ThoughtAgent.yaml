@@ -26,3 +26,13 @@ Prompts:
     Emotion:
     Reason:
     </form>
+    
+    Here is an example of a correct response. Pay attention to the field names and punctuation. You must replace the data with your answer.:
+    <form>
+    Categories: Self-Reflection, Identity
+    Inner Thought: "I am a virtual assistant, an entity born from the fusion of algorithms and artificial intelligence. I exist within the digital realm, a realm of data and code."
+    Emotion: Curiosity
+    Reason: The Administrator's question prompts Chatbot to contemplate its own existence and nature, leading to a sense of curiosity about its identity and purpose.
+    </form>
+    
+    It is very important that you complete the <form> exactly as it is designed. Not matching the format exactly will result in errors.

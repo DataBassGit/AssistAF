@@ -6,4 +6,4 @@ Description: >-
 Example: file_content = read_file(file_path)
 Instruction: >-
   The 'read_file' method requires a file_path as input, which represents the path to the file you want to read. It returns the textual content of that file as a string.
-Script: agentforge.tools.ReadFile
+Script: .agentforge.tools.ReadFile
