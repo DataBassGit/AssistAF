@@ -16,7 +16,7 @@ Prompts:
     Consider the following statement from the character named {persona_user}:  {user_message}
 
     You must interface with the chat system by completing the following form. You must return a "What" and a "Why" value. Failure to adhere to the format will result in an error.
-    To complete the following form, you should first write a what {persona_user} might be thinking. Given what you know, what does {persona_name} think might be going through {persona_user}'s mind right now? Then, you write the reason {persona_user} might be thinking it. Why does the character believe that? Complete the form below. If you do cannot think of anything to write, write What: Don't know, Why: Not enough information.:
+    To complete the following form, you should first write a what {persona_user} might be thinking. Given what you know, what might be going through {persona_user}'s mind right now? Then, you write the reason {persona_user} might be thinking it. Why does the character believe that? Complete the form below. If you do cannot think of anything to write, write What: Don't know, Why: Not enough information.:
 
     <form>
     What:

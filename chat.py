@@ -138,54 +138,50 @@ class Chatbot:
             formatted_category = self.format_string(category)
 
             # Re-assign the values to params for each iteration
-            params = {
-                "collection_name": formatted_category,
-                "data": [user_chat],
-                "ids": [str(size + 1)],
-                "metadata": [{
-                    "id": size + 1,
-                    "Character Response": bot_message,
-                    "EmotionalResponse": self.thought["Emotion"],
-                    "Inner_Thought": self.thought["Inner Thought"]
-                }]
-            }
-            self.storage.save_memory(params)  # Save to the category-specific collection
 
-        # Optionally, if you want to reset params["collection_name"] to "chat_history" after the loop
-        params = {
-            "collection_name": "chat_history",
-            "data": [user_chat],
-            "ids": [str(size + 1)],
-            "metadata": [{
+            collection_name = formatted_category
+            data = [user_chat]
+            ids = [str(size + 1)]
+            metadata = [{
                 "id": size + 1,
                 "Character Response": bot_message,
                 "EmotionalResponse": self.thought["Emotion"],
                 "Inner_Thought": self.thought["Inner Thought"]
             }]
-        }
 
-        self.storage.save_memory(params)
+            self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)  # Save to the category-specific collection
+
+        # Optionally, if you want to reset params["collection_name"] to "chat_history" after the loop
+
+        collection_name = "chat_history"
+        data = [user_chat]
+        ids = [str(size + 1)]
+        metadata = [{
+            "id": size + 1,
+            "Character Response": bot_message,
+            "EmotionalResponse": self.thought["Emotion"],
+            "Inner_Thought": self.thought["Inner Thought"]
+            }]
+
+
+        self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
 
     def chatman(self, message):
         size = self.storage.count_collection("chat_history")
         qsize = max(size - 10, 1)
         print(f"qsize: {qsize}")
-        params = {
-            "collection_name": "chat_history",
-            "filter": {"id": {"$gte": qsize}}
-        }
-        history = self.storage.load_collection(params)
+        filters = {"id": {"$gte": qsize}}
+        history = self.storage.load_collection(collection_name="chat_history",where=filters)
         user_message = f"User: {message}"
         print(f"history: {history}")
-        params = {
-            "collection_name": "chat_history",
-            "data": [user_message],
-            "ids": [str(size + 1)],
-            "metadata": [{"id": size + 1}]
-        }
+
+        data = [user_message]
+        ids = [str(size + 1)]
+        metadata = [{"id": size + 1}]
+
         if size == 0:
             history["documents"].append("No Results!")
-        self.storage.save_memory(params)
+        self.storage.save_memory(collection_name="chat_history", data=data, ids=ids, metadata=metadata)
         UI().send_message(0, f"User: {message}\n")
         return history
 
@@ -201,17 +197,16 @@ class Chatbot:
         return result_dict
 
     def memory_recall(self, categories, message, count=10):
-        params = {
-            "collection_name": categories,
-            "query": message
-        }
-        new_memories = self.storage.query_memory(params, count)
-        if new_memories["documents"] != 'No Results!':
-            if new_memories is None:
-                new_memories = []
-            if not hasattr(self, 'memories') or self.memories is None:
-                self.memories = []
-            self.memories.extend([new_memories])
+
+        collection_name = categories
+        query = message
+
+        new_memories = self.storage.query_memory(collection_name=collection_name, query=query, num_results=count)
+        print(f"New Memories: {new_memories}")
+
+        if not hasattr(self, 'memories') or self.memories is None:
+            self.memories = []
+        self.memories.extend([new_memories])
         return self.memories
 
     @staticmethod
@@ -280,7 +275,10 @@ if __name__ == '__main__':
 
     while True:
         userinput = UI.get_message()
-        bot.run(userinput)
+        if userinput is not None:
+            bot.run(userinput)
+        else:
+            pass
 
 
 

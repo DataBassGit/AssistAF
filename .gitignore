@@ -6,3 +6,5 @@ DB/
 customagents/__pycache__/
 
 modules/__pycache__/
+
+logs/

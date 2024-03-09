@@ -1,4 +1,4 @@
-from agentforge.tools.functions.UserInterface import UserInterface
+from agentforge.utils.functions.UserInterface import UserInterface
 
 
 class UI:
@@ -14,6 +14,6 @@ class UI:
 
     @staticmethod
     def get_message():
-        userinput = input("")
+        userinput = input("Message: ")
         print(f"User Input: {userinput}")
         return userinput
