@@ -75,7 +75,7 @@ class Chatbot:
         print(message)
         self.message = message
         self.author_name = self.format_string(author_name)
-        self.channel = channel
+        self.channel = str(channel)
         self.formatted_mentions = formatted_mentions
         self.ui.channel_id_layer_0 = channelid  # Set the channel ID for layer 0
 
@@ -98,7 +98,7 @@ class Chatbot:
 
     async def thought_agent(self, message, history, user_history):
         self.result = self.thou.run(user_message=message,
-                                    history=history["documents"],
+                                    history=history,
                                     user_history=user_history,
                                     username=self.author_name)
         await self.ui.send_message(1, f"Thought Agent:\n=====\n{self.result}\n=====\n")
@@ -112,7 +112,7 @@ class Chatbot:
 
     async def gen_agent(self, message, history, user_history):
         self.result = self.gen.run(user_message=message,
-                                   history=history["documents"],
+                                   history=history,
                                    memories=self.memories,
                                    emotion=self.thought["Emotion"],
                                    reason=self.thought["Reason"],
@@ -126,7 +126,7 @@ class Chatbot:
 
     async def theory_agent(self, message, history, user_history):
         self.result = self.theo.run(user_message=message,
-                                    history=history["documents"],
+                                    history=history,
                                     username=self.author_name,
                                     user_history=user_history)
         await self.ui.send_message(1, f"Theory Agent:\n=====\n{self.result}\n=====\n")
@@ -138,7 +138,7 @@ class Chatbot:
             self.theory = {"What": "Don't Know.", "Why": "Not enough information."}
 
         self.result = self.ref.run(user_message=message,
-                                   history=history["documents"],
+                                   history=history,
                                    memories=self.memories,
                                    emotion=self.thought["Emotion"],
                                    reason=self.thought["Reason"],
@@ -153,13 +153,13 @@ class Chatbot:
         print(f"self.thought: {self.reflection}")
 
         if self.reflection["Choice"] == "respond":
-            await self.ui.send_message(0, f"Chatbot: {self.chat_response}\n")
+            await self.ui.send_message(0, f"{self.chat_response}")
             self.save_memory(self.chat_response)
         elif self.reflection["Choice"] == "nothing":
-            await self.ui.send_message(0, f"Chatbot: ...\n")
+            await self.ui.send_message(0, f"...\n")
         else:
             new_response = self.gen.run(user_message=message,
-                                        history=history["documents"],
+                                        history=history,
                                         memories=self.memories,
                                         emotion=self.thought["Emotion"],
                                         reason=self.thought["Reason"],
@@ -168,13 +168,13 @@ class Chatbot:
                                         why=self.theory["Why"],
                                         feedback=self.reflection["Reason"],
                                         response=self.chat_response)
-            await self.ui.send_message(0, f"Chatbot: {new_response}\n")
+            await self.ui.send_message(0, f"{new_response}")
             self.save_memory(new_response)
 
     def save_memory(self, bot_response):
         # Existing chat history saving logic
-        bot_message = f"Chatbot: {bot_response}"
-        user_chat = f"User: {self.message}"
+        bot_message = f"{bot_response}"
+        user_chat = f"{self.message}"
 
         # New logic for saving to each category collection
         for category in self.categories:
@@ -182,7 +182,7 @@ class Chatbot:
             # Re-assign the values to params for each iteration
             collection_name = formatted_category
             size = self.storage.count_collection(collection_name)
-            data = [user_chat]
+            data = [str(user_chat)]
             ids = [str(size + 1)]
             metadata = [{
                 "id": size + 1,
@@ -200,10 +200,10 @@ class Chatbot:
             print(f"Metadata: {metadata}")
             print("---")
 
-        # Save to the category-specific collection
+        # Save to the channel-specific collection
         size = self.storage.count_collection(f"a{self.channel}-chat_history")
-        collection_name = f"{self.channel}-chat_history"
-        data = [user_chat]
+        collection_name = f"a{self.channel}-chat_history"
+        data = [str(user_chat)]
         ids = [str(size + 1)]
         metadata = [{
             "id": size + 1,
@@ -223,14 +223,14 @@ class Chatbot:
 
         # Save bot message response
         collection_name = f"a{self.channel}-chat_history"
-        data = [bot_message]
+        data = [str(bot_message)]
         ids = [str(size + 2)]
         metadata = [{
             "id": size + 1,
             "Response": user_chat,
             "EmotionalResponse": self.thought["Emotion"],
             "Inner_Thought": self.thought["Inner Thought"],
-            "User": self.author_name,
+            "User": "Trinity",
             "Mentions": self.formatted_mentions,
             "Channel": self.channel
         }]
@@ -244,7 +244,7 @@ class Chatbot:
         # User History
         size = self.storage.count_collection(f"a{self.author_name}-chat_history")
         collection_name = f"a{self.author_name}-chat_history"
-        data = [user_chat]
+        data = [str(user_chat)]
         ids = [str(size + 1)]
         metadata = [{
             "id": size + 1,
@@ -264,40 +264,77 @@ class Chatbot:
 
     async def chatman(self, message):
         # Chat History
+        chat_log = ""
         size = self.storage.count_collection(f"a{self.channel}-chat_history")
         qsize = max(size - 20, 1)
         print(f"qsize: {qsize}")
         filters = {"id": {"$gte": qsize}}
-        history = self.storage.load_collection(collection_name=f"a{self.channel}-chat_history",where=filters)
+        history = self.storage.load_collection(collection_name=f"a{self.channel}-chat_history", where=filters)
         user_message = f"User: {message}"
         print(f"history: {history}")
-
         data = [user_message]
         ids = [str(size + 1)]
         metadata = [{"id": size + 1}]
 
         if size == 0:
-            history["documents"].append("No Results!")
-        # self.storage.save_memory(collection_name="chat_history", data=data, ids=ids, metadata=metadata)
-        # await self.ui.send_message(0, f"User: {message}\n")
+            chat_log = "No Results!"
+        else:
+            # Sort the ids list in ascending order
+            sorted_ids = sorted(history['ids'], key=int)
+
+            for document_id in sorted_ids:
+                document_index = history['ids'].index(document_id)
+                if 0 <= document_index < len(history['documents']):
+                    document = history['documents'][document_index]
+                    metadata_index = history['ids'].index(document_id)
+                    if 0 <= metadata_index < len(history['metadatas']):
+                        metadata = history['metadatas'][metadata_index]
+                        timestamp = metadata['timestamp']
+                        user = metadata['User']
+                        chat_log += f"History Entry {document_id}: {document}\nTimestamp: {timestamp}\nUser:{user}\n"
+                        print(f"\nHistory Entry {document_id}: {document}\nTimestamp: {timestamp}\nUser:{user}\n")
+                    else:
+                        print(f"Skipping metadata for document with id {document_id} as it is out of range.")
+                else:
+                    print(f"Skipping document with id {document_id} as it is out of range.")
+
 
         # User History
         size = self.storage.count_collection(f"a{self.author_name}-chat_history")
         qsize = max(size - 20, 1)
+        filters = {"id": {"$gte": qsize}}
+        user_log = ""
         print(f"qsize: {qsize}")
-        user_history = self.storage.query_memory(collection_name=f"a{self.author_name}-chat_history", query=message, num_results=qsize)
+        user_history = self.storage.query_memory(collection_name=f"a{self.author_name}-chat_history", query=message,
+                                                 num_results=qsize)
         user_message = f"User: {message}"
-        print(f"history: {user_history}")
-
+        print(f"User history: {user_history}")
         data = [user_message]
         ids = [str(size + 1)]
         metadata = [{"id": size + 1}]
-
         if size == 0:
-            user_history["documents"].append("No Results!")
+            user_log = "No Results!"
+        else:
+            if 'metadatas' in user_history and isinstance(user_history['metadatas'], list):
+                min_id = min(entry[0]['id'] for entry in user_history['metadatas'] if entry)
+                for entry_list in user_history['metadatas']:
+                    if entry_list:
+                        entry = entry_list[0]
+                        timestamp = entry.get('timestamp', '')
+                        user = entry.get('User', '')
+                        document_index = entry.get('id', 0) - min_id
+                        if 'documents' in user_history and isinstance(user_history['documents'],
+                                                                      list) and 0 <= document_index < len(
+                                user_history['documents']):
+                            document = user_history['documents'][document_index][0]
+                            user_log += f"{timestamp} - {user} : {document}\n"
+                        else:
+                            print(f"Skipping document with id {entry.get('id', 0)} as it is out of range or missing.")
+            else:
+                print("Invalid user history format.")
 
         print(f"User Message: {message}\n")
-        return history, user_history
+        return chat_log, user_log
 
     def parse_lines(self):
         result_dict = {}
