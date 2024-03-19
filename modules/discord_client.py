@@ -8,7 +8,7 @@ class DiscordClient:
         self.token = str(os.getenv('DISCORD_TOKEN'))
         self.intents = discord.Intents.default()
         self.intents.message_content = True
-        self.client = discord.Client(intents=self.intents)
+        self.client = discord.Client(intents=self.intents, max_concurrency=100)
         self.channels = {}
         self.channel_ids = channel_ids
         self.on_message_callback = on_message_callback
@@ -28,6 +28,7 @@ class DiscordClient:
             author = message.author
             content = message.content
             channel = message.channel
+            channelid = channel.id
 
             # Get the author's display name
             author_name = author.display_name
@@ -44,11 +45,11 @@ class DiscordClient:
             # Format the mentions
             formatted_mentions = ", ".join(mentions)
 
-            print(f"{author_name} said: {content} in {channel}")
+            print(f"{author_name} said: {content} in {channel}. Channel ID: {channelid}")
             print(f"Mentions: {formatted_mentions}")
 
             if author != self.client.user:
-                await self.on_message_callback(content, author_name, channel, formatted_mentions)
+                await self.on_message_callback(content, author_name, channel, formatted_mentions, channelid)
 
     def run(self):
         self.client.run(token=self.token)
@@ -65,10 +66,10 @@ class DiscordClient:
                 return
 
         try:
-            message_text2 = self.intelligent_chunk(message_text, 0)
-            for message in message_text2:
-                if message.strip():  # Check if the chunk is not empty
-                    await channel.send(message)
+            message_chunks = self.intelligent_chunk(message_text, 0)
+            for chunk in message_chunks:
+                if len(chunk) > 0:  # Check if the chunk is not empty
+                    await channel.send(chunk)
         except Exception as e:
             print(f"Send Error: {e}")
             await channel.send(f"Send Error: {e}")
@@ -101,7 +102,7 @@ class DiscordClient:
         i = 0
         for i in range(0, len(sentences), num_sentences):
             # while i < len(sentences):
-            chunk = '\n'.join(sentences[i:i + num_sentences])
+            chunk = ' '.join(sentences[i:i + num_sentences])
             chunks.append(chunk)
             # i += num_sentences - 2  # Move the index forward by (num_sentences - 2) to create the overlap
         # print(f"Chunks: {chunks}")

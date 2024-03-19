@@ -1,5 +1,4 @@
 # chat.py
-
 from customagents.GenerateAgent import GenerateAgent
 from customagents.ReflectAgent import ReflectAgent
 from customagents.TheoryAgent import TheoryAgent
@@ -11,23 +10,25 @@ from agentforge.utils.function_utils import Functions
 from modules.discord_client import DiscordClient
 import re
 
-CHANNEL_IDS = {
-    0: 1216272137552400435,  # Output channel
-    1: 1216272272990666813   # Brain channel
-}
-
-
 class UI:
     def __init__(self, client):
         self.client = client
-        self.channel_ids = CHANNEL_IDS
+        self.channel_id_layer_0 = None
+        self.channel_id_layer_1 = 1216272272990666813  # Hard-coded ID for layer 1
 
     async def send_message(self, layer, message):
-        channel_id = self.channel_ids.get(layer)
+        if layer == 0:
+            channel_id = self.channel_id_layer_0
+        elif layer == 1:
+            channel_id = self.channel_id_layer_1
+        else:
+            print(f"Invalid layer: {layer}")
+            return
+
         if channel_id:
             await self.client.send_discord(message, channel_id)
         else:
-            print(f"Invalid layer: {layer}")
+            print(f"Channel ID not set for layer {layer}")
 
     @staticmethod
     def get_message():
@@ -37,7 +38,6 @@ class UI:
 
     def run(self):
         self.client.run()
-
 
 class Chatbot:
     storage = StorageInterface().storage_utils
@@ -56,7 +56,7 @@ class Chatbot:
 
     def __init__(self, client):
         self.ui = UI(client)
-        self.chat_history = self.storage.select_collection("chat_history")
+        self.chat_history = None
         self.action_execution = Action()
         self.action_selection = ActionSelectionAgent()
         self.selected_action = None
@@ -69,34 +69,37 @@ class Chatbot:
         self.author_name = None
         self.channel = None
         self.formatted_mentions = None
+        self.user_history = None
 
-
-    async def run(self, message, author_name, channel, formatted_mentions):
+    async def run(self, message, author_name, channel, formatted_mentions, channelid):
         print(message)
         self.message = message
         self.author_name = self.format_string(author_name)
         self.channel = channel
         self.formatted_mentions = formatted_mentions
+        self.ui.channel_id_layer_0 = channelid  # Set the channel ID for layer 0
 
         # save message to chat history
-        history = await self.chatman(message)
+        history, user_history = await self.chatman(message)
 
         # run thought agent
-        await self.thought_agent(message, history)
+        await self.thought_agent(message, history, user_history)
 
         # run generate agent
-        await self.gen_agent(message, history)
+        await self.gen_agent(message, history, user_history)
 
         # run theory agent
-        await self.theory_agent(message, history)
+        await self.theory_agent(message, history, user_history)
 
         # run reflect agent
-        await self.reflect_agent(message, history)
+        await self.reflect_agent(message, history, user_history)
+
         self.memories = []
 
-    async def thought_agent(self, message, history):
+    async def thought_agent(self, message, history, user_history):
         self.result = self.thou.run(user_message=message,
                                     history=history["documents"],
+                                    user_history=user_history,
                                     username=self.author_name)
         await self.ui.send_message(1, f"Thought Agent:\n=====\n{self.result}\n=====\n")
         self.thought = self.parse_lines()
@@ -107,28 +110,30 @@ class Chatbot:
             print(f"formatted_category: {formatted_category}")
             self.memory_recall(formatted_category, message)
 
-    async def gen_agent(self, message, history):
+    async def gen_agent(self, message, history, user_history):
         self.result = self.gen.run(user_message=message,
                                    history=history["documents"],
                                    memories=self.memories,
                                    emotion=self.thought["Emotion"],
                                    reason=self.thought["Reason"],
                                    thought=self.thought["Inner Thought"],
-                                   username=self.author_name)
+                                   username=self.author_name,
+                                   user_history=user_history)
         await self.ui.send_message(1, f"Generate Agent:\n=====\n{self.result}\n=====\n")
         self.generate = self.parse_lines()
         print(f"self.thought: {self.generate}")
         self.chat_response = self.result
 
-    async def theory_agent(self, message, history):
+    async def theory_agent(self, message, history, user_history):
         self.result = self.theo.run(user_message=message,
                                     history=history["documents"],
-                                    username=self.author_name)
+                                    username=self.author_name,
+                                    user_history=user_history)
         await self.ui.send_message(1, f"Theory Agent:\n=====\n{self.result}\n=====\n")
         self.theory = self.parse_lines()
         print(f"self.thought: {self.theory}")
 
-    async def reflect_agent(self, message, history):
+    async def reflect_agent(self, message, history, user_history):
         if "What" not in self.theory:
             self.theory = {"What": "Don't Know.", "Why": "Not enough information."}
 
@@ -141,7 +146,8 @@ class Chatbot:
                                    what=self.theory["What"],
                                    why=self.theory["Why"],
                                    response=self.chat_response,
-                                   username=self.author_name)
+                                   username=self.author_name,
+                                   user_history=user_history)
         await self.ui.send_message(1, f"Reflect Agent:\n=====\n{self.result}\n=====\n")
         self.reflection = self.parse_lines()
         print(f"self.thought: {self.reflection}")
@@ -184,7 +190,8 @@ class Chatbot:
                 "EmotionalResponse": self.thought["Emotion"],
                 "Inner_Thought": self.thought["Inner Thought"],
                 "User": self.author_name,
-                "Mentions": self.formatted_mentions
+                "Mentions": self.formatted_mentions,
+                "Channel": self.channel
             }]
             self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
             print(f"Saved to category collection: {collection_name}")
@@ -204,7 +211,8 @@ class Chatbot:
             "EmotionalResponse": self.thought["Emotion"],
             "Inner_Thought": self.thought["Inner Thought"],
             "User": self.author_name,
-            "Mentions": self.formatted_mentions
+            "Mentions": self.formatted_mentions,
+            "Channel": self.channel
         }]
         self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
         print(f"Saved to channel-specific collection: {collection_name}")
@@ -223,7 +231,8 @@ class Chatbot:
             "EmotionalResponse": self.thought["Emotion"],
             "Inner_Thought": self.thought["Inner Thought"],
             "User": self.author_name,
-            "Mentions": self.formatted_mentions
+            "Mentions": self.formatted_mentions,
+            "Channel": self.channel
         }]
         self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
         print(f"Saved bot message response to: {collection_name}")
@@ -243,7 +252,8 @@ class Chatbot:
             "EmotionalResponse": self.thought["Emotion"],
             "Inner_Thought": self.thought["Inner Thought"],
             "User": self.author_name,
-            "Mentions": self.formatted_mentions
+            "Mentions": self.formatted_mentions,
+            "Channel": self.channel
         }]
         self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
         print(f"Saved to user history: {collection_name}")
@@ -253,6 +263,7 @@ class Chatbot:
         print("---")
 
     async def chatman(self, message):
+        # Chat History
         size = self.storage.count_collection(f"a{self.channel}-chat_history")
         qsize = max(size - 20, 1)
         print(f"qsize: {qsize}")
@@ -269,8 +280,24 @@ class Chatbot:
             history["documents"].append("No Results!")
         # self.storage.save_memory(collection_name="chat_history", data=data, ids=ids, metadata=metadata)
         # await self.ui.send_message(0, f"User: {message}\n")
-        print(f"User: {message}\n")
-        return history
+
+        # User History
+        size = self.storage.count_collection(f"a{self.author_name}-chat_history")
+        qsize = max(size - 20, 1)
+        print(f"qsize: {qsize}")
+        user_history = self.storage.query_memory(collection_name=f"a{self.author_name}-chat_history", query=message, num_results=qsize)
+        user_message = f"User: {message}"
+        print(f"history: {user_history}")
+
+        data = [user_message]
+        ids = [str(size + 1)]
+        metadata = [{"id": size + 1}]
+
+        if size == 0:
+            user_history["documents"].append("No Results!")
+
+        print(f"User Message: {message}\n")
+        return history, user_history
 
     def parse_lines(self):
         result_dict = {}
@@ -356,13 +383,13 @@ class Chatbot:
         return "\n".join(formatted_strings).strip('---\n')
 
 
-async def on_message(content, author_name, channel, formatted_mentions):
-    await bot.run(content, author_name, channel, formatted_mentions)
+async def on_message(content, author_name, channel, formatted_mentions, channelid):
+    await bot.run(content, author_name, channel, formatted_mentions, channelid)
 
 if __name__ == '__main__':
     print("Starting")
     # Create an instance of the DiscordClient once and pass it to the UI
-    discord_client = DiscordClient(CHANNEL_IDS.values(), on_message_callback=on_message)
+    discord_client = DiscordClient([], on_message_callback=on_message)
     bot = Chatbot(discord_client)
     bot.ui = UI(discord_client)  # Pass the discord_client to the UI
     # Now, start the Discord client

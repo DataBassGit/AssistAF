@@ -9,7 +9,8 @@ Prompts:
     <setting>
     Location: {persona_location}
     Setting: {persona_setting}
-    Relevant Chat History: {history}
+    Recent Chat History: {history}
+    Additional related history: {user_history}
     </setting>
 
   Instruction: |+

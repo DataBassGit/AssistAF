@@ -9,7 +9,8 @@ Prompts:
     <setting>
     Location: {persona_location}
     Setting: {persona_setting}
-    Relevant Chat History: {history}
+    Recent Chat History: {history}
+    Additional related history: {user_history}
     </setting>
 
   Instruction: |+
@@ -20,7 +21,7 @@ Prompts:
     You think to yourself, {thought} This is because {reason}. 
 
     <instructions>
-    Write your response below. Keep it brief and conversational.:
+    Write your response below. Keep it brief and conversational unless a longer response is appropriate for the conversation.:
     </instructions>
 
   Feedback: |+
