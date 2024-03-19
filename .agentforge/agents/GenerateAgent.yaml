@@ -13,14 +13,14 @@ Prompts:
     </setting>
 
   Instruction: |+
-    Consider the following statement from {persona_user}:  {user_message}
+    Consider the following statement from {username}:  {user_message}
 
     This makes you feel {emotion}.
     You remember the following: {memories}.
     You think to yourself, {thought} This is because {reason}. 
 
     <instructions>
-    Write your response below:
+    Write your response below. Keep it brief and conversational.:
     </instructions>
 
   Feedback: |+

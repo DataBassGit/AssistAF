@@ -65,10 +65,18 @@ class Chatbot:
         self.theory = None
         self.generate = None
         self.thought = None
+        self.message = None
+        self.author_name = None
+        self.channel = None
+        self.formatted_mentions = None
 
-    async def run(self, message):
+
+    async def run(self, message, author_name, channel, formatted_mentions):
         print(message)
         self.message = message
+        self.author_name = self.format_string(author_name)
+        self.channel = channel
+        self.formatted_mentions = formatted_mentions
 
         # save message to chat history
         history = await self.chatman(message)
@@ -88,7 +96,8 @@ class Chatbot:
 
     async def thought_agent(self, message, history):
         self.result = self.thou.run(user_message=message,
-                                    history=history["documents"])
+                                    history=history["documents"],
+                                    username=self.author_name)
         await self.ui.send_message(1, f"Thought Agent:\n=====\n{self.result}\n=====\n")
         self.thought = self.parse_lines()
         print(f"self.thought: {self.thought}")
@@ -104,7 +113,8 @@ class Chatbot:
                                    memories=self.memories,
                                    emotion=self.thought["Emotion"],
                                    reason=self.thought["Reason"],
-                                   thought=self.thought["Inner Thought"])
+                                   thought=self.thought["Inner Thought"],
+                                   username=self.author_name)
         await self.ui.send_message(1, f"Generate Agent:\n=====\n{self.result}\n=====\n")
         self.generate = self.parse_lines()
         print(f"self.thought: {self.generate}")
@@ -112,7 +122,8 @@ class Chatbot:
 
     async def theory_agent(self, message, history):
         self.result = self.theo.run(user_message=message,
-                                    history=history["documents"])
+                                    history=history["documents"],
+                                    username=self.author_name)
         await self.ui.send_message(1, f"Theory Agent:\n=====\n{self.result}\n=====\n")
         self.theory = self.parse_lines()
         print(f"self.thought: {self.theory}")
@@ -129,7 +140,8 @@ class Chatbot:
                                    thought=self.thought["Inner Thought"],
                                    what=self.theory["What"],
                                    why=self.theory["Why"],
-                                   response=self.chat_response)
+                                   response=self.chat_response,
+                                   username=self.author_name)
         await self.ui.send_message(1, f"Reflect Agent:\n=====\n{self.result}\n=====\n")
         self.reflection = self.parse_lines()
         print(f"self.thought: {self.reflection}")
@@ -155,49 +167,97 @@ class Chatbot:
 
     def save_memory(self, bot_response):
         # Existing chat history saving logic
-        size = self.storage.count_collection("chat_history")
         bot_message = f"Chatbot: {bot_response}"
         user_chat = f"User: {self.message}"
 
         # New logic for saving to each category collection
         for category in self.categories:
             formatted_category = self.format_string(category)
-
             # Re-assign the values to params for each iteration
-
             collection_name = formatted_category
+            size = self.storage.count_collection(collection_name)
             data = [user_chat]
             ids = [str(size + 1)]
             metadata = [{
                 "id": size + 1,
                 "Character Response": bot_message,
                 "EmotionalResponse": self.thought["Emotion"],
-                "Inner_Thought": self.thought["Inner Thought"]
+                "Inner_Thought": self.thought["Inner Thought"],
+                "User": self.author_name,
+                "Mentions": self.formatted_mentions
             }]
+            self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
+            print(f"Saved to category collection: {collection_name}")
+            print(f"Data: {data}")
+            print(f"IDs: {ids}")
+            print(f"Metadata: {metadata}")
+            print("---")
 
-            self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)  # Save to the category-specific collection
-
-        # Optionally, if you want to reset params["collection_name"] to "chat_history" after the loop
-
-        collection_name = "chat_history"
+        # Save to the category-specific collection
+        size = self.storage.count_collection(f"a{self.channel}-chat_history")
+        collection_name = f"{self.channel}-chat_history"
         data = [user_chat]
         ids = [str(size + 1)]
         metadata = [{
             "id": size + 1,
-            "Character Response": bot_message,
+            "Response": bot_message,
             "EmotionalResponse": self.thought["Emotion"],
-            "Inner_Thought": self.thought["Inner Thought"]
-            }]
-
-
+            "Inner_Thought": self.thought["Inner Thought"],
+            "User": self.author_name,
+            "Mentions": self.formatted_mentions
+        }]
         self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
+        print(f"Saved to channel-specific collection: {collection_name}")
+        print(f"Data: {data}")
+        print(f"IDs: {ids}")
+        print(f"Metadata: {metadata}")
+        print("---")
+
+        # Save bot message response
+        collection_name = f"a{self.channel}-chat_history"
+        data = [bot_message]
+        ids = [str(size + 2)]
+        metadata = [{
+            "id": size + 1,
+            "Response": user_chat,
+            "EmotionalResponse": self.thought["Emotion"],
+            "Inner_Thought": self.thought["Inner Thought"],
+            "User": self.author_name,
+            "Mentions": self.formatted_mentions
+        }]
+        self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
+        print(f"Saved bot message response to: {collection_name}")
+        print(f"Data: {data}")
+        print(f"IDs: {ids}")
+        print(f"Metadata: {metadata}")
+        print("---")
+
+        # User History
+        size = self.storage.count_collection(f"a{self.author_name}-chat_history")
+        collection_name = f"a{self.author_name}-chat_history"
+        data = [user_chat]
+        ids = [str(size + 1)]
+        metadata = [{
+            "id": size + 1,
+            "Response": bot_message,
+            "EmotionalResponse": self.thought["Emotion"],
+            "Inner_Thought": self.thought["Inner Thought"],
+            "User": self.author_name,
+            "Mentions": self.formatted_mentions
+        }]
+        self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
+        print(f"Saved to user history: {collection_name}")
+        print(f"Data: {data}")
+        print(f"IDs: {ids}")
+        print(f"Metadata: {metadata}")
+        print("---")
 
     async def chatman(self, message):
-        size = self.storage.count_collection("chat_history")
-        qsize = max(size - 10, 1)
+        size = self.storage.count_collection(f"a{self.channel}-chat_history")
+        qsize = max(size - 20, 1)
         print(f"qsize: {qsize}")
         filters = {"id": {"$gte": qsize}}
-        history = self.storage.load_collection(collection_name="chat_history",where=filters)
+        history = self.storage.load_collection(collection_name=f"a{self.channel}-chat_history",where=filters)
         user_message = f"User: {message}"
         print(f"history: {history}")
 
@@ -207,7 +267,7 @@ class Chatbot:
 
         if size == 0:
             history["documents"].append("No Results!")
-        self.storage.save_memory(collection_name="chat_history", data=data, ids=ids, metadata=metadata)
+        # self.storage.save_memory(collection_name="chat_history", data=data, ids=ids, metadata=metadata)
         # await self.ui.send_message(0, f"User: {message}\n")
         print(f"User: {message}\n")
         return history
@@ -296,42 +356,14 @@ class Chatbot:
         return "\n".join(formatted_strings).strip('---\n')
 
 
-async def on_message(message):
-    if message.author != bot.ui.client.client.user:
-        userinput = message.content
-        await bot.run(userinput)
+async def on_message(content, author_name, channel, formatted_mentions):
+    await bot.run(content, author_name, channel, formatted_mentions)
 
 if __name__ == '__main__':
     print("Starting")
-
     # Create an instance of the DiscordClient once and pass it to the UI
     discord_client = DiscordClient(CHANNEL_IDS.values(), on_message_callback=on_message)
     bot = Chatbot(discord_client)
     bot.ui = UI(discord_client)  # Pass the discord_client to the UI
-
     # Now, start the Discord client
     discord_client.run()
-
-    # ======CLI Only========
-    # print("Starting")
-    # bot = Chatbot()
-    #
-    # while True:
-    #     userinput = UI.get_message()
-    #     if userinput != '':
-    #         bot.run(userinput)
-    #     else:
-    #         bot.run("*They look at you, but say nothing*")
-
-
-    # ======Old Kivy=======
-    # api = ListenForUI(callback=Chatbot().run)
-
-    # Add a simple input loop to keep the main thread running
-    # while True:
-    #     try:
-    #         user_input = input("Press Enter to exit...")
-    #         if user_input:
-    #             break
-    #     except KeyboardInterrupt:
-    #         break

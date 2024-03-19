@@ -13,12 +13,12 @@ Prompts:
     </setting>
 
   Instruction: |+
-    Consider the following statement from the character named {persona_user}:  {user_message}
+    Consider the following statement from the character named {username}:  {user_message}
     
     <Additional context>:
     {persona_name} thinks to themself: {thought} 
     This is because: {reason}. 
-    {persona_name} thinks {persona_user} is thinking: {what}
+    {persona_name} thinks {username} is thinking: {what}
     This is because: {why} 
     {persona_name}'s emotional state is {emotion}.
     

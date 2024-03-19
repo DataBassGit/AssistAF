@@ -13,11 +13,11 @@ Prompts:
     </setting>
 
   Instruction: |+
-    Consider the following statement from {persona_user}:  {user_message}
+    Consider the following statement from {username}:  {user_message}
 
     <instructions>
     You must interface with the chat system by completing the following form, inside <form></form> XML tags. Failure to adhere to the format will result in an error.
-    To fill out this form, you should first write a category that the statement falls under. Next, you write an inner thought that {persona_name} might have about the statement. Then, you write an emotion that the statement given by {persona_user} might elicit. Finally, give a reason that {persona_name} might have the emotion. Fill in your responses below:
+    To fill out this form, you should first write a category that the statement falls under. Next, you write an inner thought that {persona_name} might have about the statement. Then, you write an emotion that the statement given by {username} might elicit. Finally, give a reason that {persona_name} might have the emotion. Fill in your responses below:
     </instructions>
 
     <form>
