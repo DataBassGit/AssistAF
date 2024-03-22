@@ -11,15 +11,15 @@
 - Theory of mind
 - Single branch tree-of-thought
 
-## Starting the Chatbot
+## Configure your Environment Variables:
 
-Go to the commandline and run:
-```commandline
-agentforge gui
-```
-This will start the UI. This is a very basic UI, but we are working on improving the interface. It is designed in Kivy to be easily ported to Android.
+In order to run the agent, you will need to set up environment variables. The following variables are used:
 
-In a separate terminal, run:
+    -- ANTHROPIC_API_KEY: All prompts are optimized to run on Claude 3
+    -- DISCORD_TOKEN: The bot needs to be registered with Discord and added to your server.
+
+## run:
+
 ```commandline
 python chat.py
 ```
@@ -92,14 +92,14 @@ Chatbot/
     - Uses `format_string` to format the "Category".
     - Queries memory based on the formatted category.
 
-### 2. **GenerateAgent (gen)**:
-    - Processes the user's message, chat history, memories, emotion, reason, and inner thought.
-    - Determines the bot's response.
-    - Sends the result to the `ApiClient`.
-
-### 3. **TheoryAgent (theo)**:
+### 2. **TheoryAgent (theo)**:
     - Processes the user's message and chat history.
     - Generates a theory about the user's intent.
+    - Sends the result to the `ApiClient`.
+
+### 3. **GenerateAgent (gen)**:
+    - Processes the user's message, chat history, memories, emotion, reason, and inner thought.
+    - Determines the bot's response.
     - Sends the result to the `ApiClient`.
 
 ### 4. **ReflectAgent (ref)**:
@@ -119,8 +119,8 @@ Chatbot/
 1. A new message is received.
 2. The message is printed and saved in the chat history using `chatman`.
 3. The `ThoughtAgent` runs and processes the message.
-4. The `GenerateAgent` runs and determines the bot's response.
-5. The `TheoryAgent` runs and provides a theory about the user's intent.
+4. The `TheoryAgent` runs and provides a theory about the user's intent.
+5. The `GenerateAgent` runs and determines the bot's response.
 6. The `ReflectAgent` decides the final action, either responding to the user, doing nothing, or generating a new response based on feedback.
 
 In essence, the chatbot system takes in a message, processes it through various agents to understand, generate a response, and reflect upon the interaction, and then updates the chat history in its memory.
