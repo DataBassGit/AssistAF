@@ -14,7 +14,7 @@ Prompts:
     </setting>
 
   Instruction: |+
-    Consider the following statement from the character named {username}:  {user_message}
+    Consider the following message from the character named {username}:  {user_message}
     
     <Additional context>:
     {persona_name} thinks to themself: {thought} 

@@ -85,11 +85,11 @@ class Chatbot:
         # run thought agent
         await self.thought_agent(message, history, user_history)
 
-        # run generate agent
-        await self.gen_agent(message, history, user_history)
-
         # run theory agent
         await self.theory_agent(message, history, user_history)
+
+        # run generate agent
+        await self.gen_agent(message, history, user_history)
 
         # run reflect agent
         await self.reflect_agent(message, history, user_history)
@@ -118,6 +118,8 @@ class Chatbot:
                                    reason=self.thought["Reason"],
                                    thought=self.thought["Inner Thought"],
                                    username=self.author_name,
+                                   what=self.theory["What"],
+                                   why=self.theory["Why"],
                                    user_history=user_history)
         await self.ui.send_message(1, f"Generate Agent:\n=====\n{self.result}\n=====\n")
         self.generate = self.parse_lines()
@@ -130,7 +132,10 @@ class Chatbot:
                                     username=self.author_name,
                                     user_history=user_history)
         await self.ui.send_message(1, f"Theory Agent:\n=====\n{self.result}\n=====\n")
-        self.theory = self.parse_lines()
+        try:
+            self.theory = self.parse_lines()
+        except:
+            self.theory = {"what":"(not sure)","why":"(not enough info)"}
         print(f"self.thought: {self.theory}")
 
     async def reflect_agent(self, message, history, user_history):
@@ -157,6 +162,7 @@ class Chatbot:
             self.save_memory(self.chat_response)
         elif self.reflection["Choice"] == "nothing":
             await self.ui.send_message(0, f"...\n")
+            self.save_memory(self.reflection["Reason"])
         else:
             new_response = self.gen.run(user_message=message,
                                         history=history,
@@ -167,6 +173,8 @@ class Chatbot:
                                         what=self.theory["What"],
                                         why=self.theory["Why"],
                                         feedback=self.reflection["Reason"],
+                                        username=self.author_name,
+                                        user_history=user_history,
                                         response=self.chat_response)
             await self.ui.send_message(0, f"{new_response}")
             self.save_memory(new_response)

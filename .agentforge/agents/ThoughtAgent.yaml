@@ -14,7 +14,7 @@ Prompts:
     </setting>
 
   Instruction: |+
-    Consider the following statement from {username}:  {user_message}
+    Consider the following message from the character named {username}:  {user_message}
 
     <instructions>
     You must interface with the chat system by completing the following form, inside <form></form> XML tags. Failure to adhere to the format will result in an error.
