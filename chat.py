@@ -8,13 +8,14 @@ from agentforge.modules.ActionExecution import Action
 from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 from agentforge.utils.function_utils import Functions
 from modules.discord_client import DiscordClient
-import re
+import re, os
+
 
 class UI:
     def __init__(self, client):
         self.client = client
         self.channel_id_layer_0 = None
-        self.channel_id_layer_1 = 1216272272990666813  # Hard-coded ID for layer 1
+        self.channel_id_layer_1 = os.getenv('BRAIN_CHANNEL')
 
     async def send_message(self, layer, message):
         if layer == 0:
@@ -38,6 +39,7 @@ class UI:
 
     def run(self):
         self.client.run()
+
 
 class Chatbot:
     storage = StorageInterface().storage_utils

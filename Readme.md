@@ -2,7 +2,7 @@
 
  This is a discord chatbot implementation of AssistAF using the [AgentForge](https://github.com/AgentForge/agentforge) framework. It has advanced [active retrieval augmented generation](https://arxiv.org/abs/2305.06983),  and leverages [reflextion](https://arxiv.org/abs/2303.11366), multi-prompt [chain-of-thought](https://arxiv.org/abs/2201.11903), uses [theory of mind capabilities](https://arxiv.org/abs/2303.12712), and even has a single branch [tree-of-thought](https://arxiv.org/abs/2305.10601). All of this to generate lucid and liminal conversational character bots that are [enhanced by emotional stimuli](https://arxiv.org/abs/2307.11760).
 
- Because this system is built on AgentForge, we can quickly switch between OpenAI and Claude, as well as locally hosted models. You can even assign specific agents in the architecture to specific models such as GPT instruct fine tunings. The 
+ Because this system is built on AgentForge, we can quickly switch between OpenAI, Claude3 and Gemini, as well as locally hosted models. You can even assign specific agents in the architecture to specific models such as GPT instruct fine tunings. The current version has its prompts tuned for Claude 3. These seem to work for OpenAI as well, but you may need to adjust them for other models.
 
 ## Features
 
@@ -10,6 +10,8 @@
 - Multi-prompt chain-of-thought
 - Theory of mind
 - Single branch tree-of-thought
+- Multi-user interaction
+- Multi-channel response
 
 ## Configure your Environment Variables:
 
@@ -17,17 +19,22 @@ In order to run the agent, you will need to set up environment variables. The fo
 
     -- ANTHROPIC_API_KEY: All prompts are optimized to run on Claude 3
     -- DISCORD_TOKEN: The bot needs to be registered with Discord and added to your server.
+    -- BRAIN_CHANNEL: Channel ID in discord where individual agent internal dialog is sent.
+
+You will also need to install AgentForge
+
+`pip install agentforge`
 
 ## run:
 
 ```commandline
 python chat.py
 ```
-This will start the bot. You will need to give the bot a few seconds to prepare the server. Once it is ready, you can start the chat.
+This will start the bot. You will need to give the bot a few seconds to connect to the discord server. Once it is ready, you will see the bot in the members list.
 
 ## Using the Chatbot
 
-Bot prompts are stored in the .agentforge/agents folder. The bot uses 4 separate agents to generate the chat. There is a 5th important file in the .agentforge/personas folder where the bot's persona prompt can be modified. This is how you define the personality of the bot. Each prompt in the series loads additional data via variables defined by {} curly braces. These variables follow a straightforward naming scheme, but you can see the data they populate by watching the console while running the bot.
+Bot prompts are stored in the .agentforge/agents folder. The bot uses 4 separate agents to generate the chat. There is a 5th important file in the .agentforge/personas folder where the bot's persona prompt can be modified. This is how you define the personality of the bot. Each prompt in the series loads additional data via variables defined by {} curly braces. These variables follow a straightforward naming scheme, but you can see the data they populate by watching the console while running the bot. They correspond to the attributes passed to agent function inside the chat.py script. The agents also each populate data from the default.yaml persona.
 
 ## File Structure
 
@@ -67,6 +74,12 @@ Chatbot/
 │
 ├── logs/
 │
+├── modules/
+│   ├── __init__.py
+│   ├── discord_client.py  # How we connect to discord
+│   ├── hotmic.py  # Not used
+│   └──  slidingemotions.py  # Not used
+│
 ├── chat.py
 │
 └── Readme.md
@@ -83,30 +96,34 @@ Chatbot/
   
 - **Chatbot Class**: This is the primary class. It consists of several agents and methods to process the chat.
 
+- **UI Class**: Wrapper for the discord client. Handles sending and receiving messages and populating channel ids.
+
 ## Agents Interaction
 
 ### 1. **ThoughtAgent (thou)**:
     - Processes the user's message and the chat history.
     - Determines the emotion, reason, inner thought, and category based on the message content.
-    - Sends the result to the `ApiClient`.
+    - Sends the result to the `brain channel`.
     - Uses `format_string` to format the "Category".
     - Queries memory based on the formatted category.
 
 ### 2. **TheoryAgent (theo)**:
     - Processes the user's message and chat history.
     - Generates a theory about the user's intent.
-    - Sends the result to the `ApiClient`.
+    - Sends the result to the `brain channel`.
 
 ### 3. **GenerateAgent (gen)**:
-    - Processes the user's message, chat history, memories, emotion, reason, and inner thought.
+    - Processes the user's message, chat history, memories, emotion, reason, theory of user intent, and inner thought.
     - Determines the bot's response.
-    - Sends the result to the `ApiClient`.
+    - Sends the result to the `brain channel`.
 
 ### 4. **ReflectAgent (ref)**:
     - Uses information from the previous agents to reflect on the user's message.
     - Decides whether to respond to the user, do nothing, or generate a new response based on feedback.
-    - Sends the result to the `ApiClient`.
-    - Saves the chatbot's response in the memory using `save_memory`.
+    - Sends the result to the `out channel` if respond is chosen.
+    - Sends the reason back to the GenerateAgent if change is chosen.
+    - Saves the chatbot's response in the memory using `save_memory` in either scenaro.
+    - Sends '...' to the out channel if nothing is chosen, but saves the reason as the memory.
 
 ## Memory Interaction (`storage`)
 
