@@ -101,19 +101,41 @@ class Chatbot:
 
         self.memories = []
 
-    async def run_batch(self, channel_data):
+    async def run_batch(self, channel_data, message, author_name, channel, formatted_mentions, channelid):
         async with self.processing_lock:
+            print(message)
+            self.message = message
             channel_layer_id = channel_data["channel"]
+            self.author_name = self.format_string(author_name)
+            self.channel = str(channel)
+            self.formatted_mentions = formatted_mentions
+            self.ui.channel_id_layer_0 = channelid  # Set the channel ID for layer 0
             messages = channel_data["messages"]
 
             # Update chat history with new messages
-            await self.chatman(messages)
+            await self.chatman(self.message)
 
             # Process the batch of messages
             self.channel = str(channel_layer_id)
             self.ui.channel_id_layer_0 = channel_layer_id
 
             # - new message processing logic
+            # save message to chat history
+            history, user_history = await self.chatman(message)
+
+            # run thought agent
+            await self.thought_agent(message, history, user_history)
+
+            # run theory agent
+            await self.theory_agent(message, history, user_history)
+
+            # run generate agent
+            await self.gen_agent(message, history, user_history)
+
+            # run reflect agent
+            await self.reflect_agent(message, history, user_history)
+
+            self.memories = []
 
     async def thought_agent(self, message, history, user_history):
         self.result = self.thou.run(user_message=message,
@@ -289,16 +311,7 @@ class Chatbot:
         print(f"Metadata: {metadata}")
         print("---")
 
-    async def chatman(self, messages):
-        # Update chat history with new messages
-        for message_data in messages:
-            message = message_data["message"]
-            author = message_data["author"]
-            formatted_mentions = message_data["formatted_mentions"]
-
-            # ... (existing code for updating chat history)
-
-    async def chatman2(self, message):
+    async def chatman(self, message):
         # Chat History
         chat_log = ""
         size = self.storage.count_collection(f"a{self.channel}-chat_history")
