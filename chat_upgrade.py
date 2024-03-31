@@ -382,3 +382,9 @@ if __name__ == '__main__':
     bot.ui = UI(discord_client)
     asyncio.create_task(bot.process_channel_messages())
     discord_client.run()
+
+
+Each chat entry in the batch will need to be saved separately. We need an agent to
+choose which specific memory we are responding to. That specific entry will get the
+response metadata. That is the message that will be sent to chatman() at the beginning
+of the run. It's important that these are saved in sequence
