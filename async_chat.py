@@ -78,33 +78,62 @@ class Chatbot:
         self.formatted_mentions = None
         self.user_history = None
         self.channel_messages = {}
+        self.processing_lock = asyncio.Lock()
 
         self.logger = Logger('AsyncChat')
 
-    async def run(self, message, author_name, channel, formatted_mentions, channel_id):
-        self.logger.log(f"Running Chat Loop... Message:{message}", 'info', 'Trinity')
-        self.message = message
-        self.author_name = self.format_string(author_name)
-        self.channel = str(channel)
-        self.formatted_mentions = formatted_mentions
-        self.ui.channel_id_layer_0 = channel_id  # Set the channel ID for layer 0
+    # async def run(self, message, author_name, channel, formatted_mentions, channel_id):
+    #     self.logger.log(f"Running Chat Loop... Message:{message}", 'info', 'Trinity')
+    #     self.message = message
+    #     self.author_name = self.format_string(author_name)
+    #     self.channel = str(channel)
+    #     self.formatted_mentions = formatted_mentions
+    #     self.ui.channel_id_layer_0 = channel_id  # Set the channel ID for layer 0
+    #
+    #     # save message to chat history
+    #     history, user_history = await self.chatman(message)
+    #
+    #     # run thought agent
+    #     await self.thought_agent(message, history, user_history)
+    #
+    #     # run theory agent
+    #     await self.theory_agent(message, history, user_history)
+    #
+    #     # run generate agent
+    #     await self.gen_agent(message, history, user_history)
+    #
+    #     # run reflect agent
+    #     await self.reflect_agent(message, history, user_history)
+    #
+    #     self.memories = []
 
-        # save message to chat history
-        history, user_history = await self.chatman(message)
+    async def run_batch(self, messages):
+        self.logger.log(f"Running Chat Loop...", 'info', 'Trinity')
+        async with self.processing_lock:
+            self.message = messages[0]  # Figure out a way to select a message (or multi message)
+            self.logger.log(f"Message: {self.message}", 'info', 'Trinity')
 
-        # run thought agent
-        await self.thought_agent(message, history, user_history)
+            self.author_name = self.format_string(self.message["author"])
+            self.channel = str(self.message["channel"])
+            self.ui.channel_id_layer_0 = self.message["channel_id"]
+            self.formatted_mentions = self.message["formatted_mentions"]
 
-        # run theory agent
-        await self.theory_agent(message, history, user_history)
+            # Run Chat Manager
+            history, user_history = await self.chatman(self.message)
 
-        # run generate agent
-        await self.gen_agent(message, history, user_history)
+            # run thought agent
+            await self.thought_agent(self.message, history, user_history)
 
-        # run reflect agent
-        await self.reflect_agent(message, history, user_history)
+            # run theory agent
+            await self.theory_agent(self.message, history, user_history)
 
-        self.memories = []
+            # run generate agent
+            await self.gen_agent(self.message, history, user_history)
+
+            # run reflect agent
+            await self.reflect_agent(self.message, history, user_history)
+
+            self.memories = []
 
     async def thought_agent(self, message, history, user_history):
         self.logger.log(f"Running Thought Agent... Message:{message}", 'info', 'Trinity')
@@ -303,11 +332,7 @@ class Chatbot:
         print(f"qsize: {qsize}")
         filters = {"id": {"$gte": qsize}}
         history = self.storage.load_collection(collection_name=f"a{self.channel}-chat_history", where=filters)
-        user_message = f"User: {message}"
         print(f"history: {history}")
-        data = [user_message]
-        ids = [str(size + 1)]
-        metadata = [{"id": size + 1}]
 
         if size == 0:
             chat_log = "No Results!"
@@ -331,20 +356,15 @@ class Chatbot:
                 else:
                     print(f"Skipping document with id {document_id} as it is out of range.")
 
-
         # User History
         size = self.storage.count_collection(f"a{self.author_name}-chat_history")
         qsize = max(size - 20, 1)
-        filters = {"id": {"$gte": qsize}}
         user_log = ""
         print(f"qsize: {qsize}")
         user_history = self.storage.query_memory(collection_name=f"a{self.author_name}-chat_history", query=message,
                                                  num_results=qsize)
-        user_message = f"User: {message}"
         print(f"User history: {user_history}")
-        data = [user_message]
-        ids = [str(size + 1)]
-        metadata = [{"id": size + 1}]
+
         if size == 0:
             user_log = "No Results!"
         else:
@@ -429,20 +449,15 @@ class Chatbot:
             self.logger.log(f"Process Channel Messages - New Loop!", 'debug', 'Trinity')
             if self.channel_messages:
                 for channel_layer_id in sorted(self.channel_messages.keys()):
-                    messages = self.channel_messages[channel_layer_id]
+                    messages = self.channel_messages.pop(channel_layer_id, None)
                     self.logger.log(f"Messages in Channel {channel_layer_id}: {messages}", 'debug', 'Trinity')
                     if messages:
-                        channel_data = {
-                            "channel": channel_layer_id,
-                            "messages": messages
-                        }
                         # await self.run_batch(**channel_data)
-                        self.logger.log(f"Run Batch Should Run Here", 'debug', 'Trinity')
-                        self.channel_messages[channel_layer_id] = []
+                        await self.run_batch(messages)
+                        self.logger.log(f"Run Batch Should Run Here, if i had any", 'debug', 'Trinity')
                     else:
                         self.logger.log(f"Sleep Cycle", 'debug', 'Trinity')
                         await asyncio.sleep(30)
-                        # await asyncio.sleep(self.batch_interval)
             else:
                 self.logger.log(f"No Messages - Sleep Cycle", 'debug', 'Trinity')
                 await asyncio.sleep(30)
@@ -466,7 +481,6 @@ async def on_message(content, author_name, channel, formatted_mentions, channel_
 
     bot.channel_messages[channel_id].append(message_data)
     bot.logger.log(f"Async on_message: done!", 'debug', 'Trinity')
-    # await bot.process_channel_messages()
 
 
 if __name__ == '__main__':
