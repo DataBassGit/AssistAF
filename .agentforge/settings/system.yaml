@@ -10,6 +10,7 @@ Logging:
     AgentForge: error
     ModelIO: debug
     Results: error
+    Trinity: debug
 
 Paths:
   Files: ./Files

@@ -1,9 +1,32 @@
 # modules/discord_client.py
 import discord
 import os
+import asyncio
 import spacy
+from agentforge.utils.functions.Logger import Logger
+
 
 class DiscordClient:
+    # def __init__(self, channel_ids, on_message_callback):
+    #     self.token = str(os.getenv('DISCORD_TOKEN'))
+    #     self.intents = discord.Intents.default()
+    #     self.intents.message_content = True
+    #     self.client = discord.Client(intents=self.intents, max_concurrency=100)
+    #     self.channels = {}
+    #     self.channel_ids = channel_ids
+    #     self.on_message_callback = on_message_callback
+    #     self.logger = Logger('DiscordClient')
+    #
+    #     @self.client.event
+    #     async def on_ready():
+    #         print(f'\n{self.client.user} is connected.')
+    #         for channel_id in channel_ids:
+    #             channel = self.client.get_channel(channel_id)
+    #             if channel:
+    #                 self.channels[channel_id] = channel
+    #             else:
+    #                 print(f"Channel not found: {channel_id}")
+
     def __init__(self, channel_ids, on_message_callback):
         self.token = str(os.getenv('DISCORD_TOKEN'))
         self.intents = discord.Intents.default()
@@ -12,23 +35,30 @@ class DiscordClient:
         self.channels = {}
         self.channel_ids = channel_ids
         self.on_message_callback = on_message_callback
+        self.bot = None  # Placeholder for the Chatbot instance
+        self.logger = Logger('DiscordClient')
 
         @self.client.event
         async def on_ready():
-            print(f'\n{self.client.user} is connected.')
+            self.logger.log(f'\n{self.client.user} is connected.', 'info', 'Trinity')
             for channel_id in channel_ids:
-                channel = self.client.get_channel(channel_id)
+                channel = await self.client.fetch_channel(channel_id)
                 if channel:
                     self.channels[channel_id] = channel
                 else:
                     print(f"Channel not found: {channel_id}")
 
+            # Now that the bot is connected, start process_channel_messages
+            if self.bot:
+                asyncio.create_task(self.bot.process_channel_messages())
+
         @self.client.event
         async def on_message(message: discord.Message):
+            self.logger.log(f"On Message: {message}", 'debug', 'Trinity')
             author = message.author
             content = message.content
             channel = message.channel
-            channelid = channel.id
+            channel_id = channel.id
 
             # Get the author's display name
             author_name = author.display_name
@@ -45,11 +75,13 @@ class DiscordClient:
             # Format the mentions
             formatted_mentions = ", ".join(mentions)
 
-            print(f"{author_name} said: {content} in {channel}. Channel ID: {channelid}")
-            print(f"Mentions: {formatted_mentions}")
+            self.logger.log(f"{author_name} said: {content} in {channel}. Channel ID: {channel_id}", 'debug', 'Trinity')
+            self.logger.log(f"Mentions: {formatted_mentions}", 'debug', 'Trinity')
+            # print(f"{author_name} said: {content} in {channel}. Channel ID: {channel_id}")
+            # print(f"Mentions: {formatted_mentions}")
 
             if author != self.client.user:
-                await self.on_message_callback(content, author_name, channel, formatted_mentions, channelid)
+                await self.on_message_callback(content, author_name, channel, formatted_mentions, channel_id)
 
     def run(self):
         self.client.run(token=self.token)
