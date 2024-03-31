@@ -75,7 +75,7 @@ class DiscordClient:
             # Format the mentions
             formatted_mentions = ", ".join(mentions)
 
-            self.logger.log(f"{author_name} said: {content} in {channel}. Channel ID: {channel_id}", 'debug', 'Trinity')
+            self.logger.log(f"{author_name} said: {content} in {channel}. Channel ID: {channel_id}", 'info', 'Trinity')
             self.logger.log(f"Mentions: {formatted_mentions}", 'debug', 'Trinity')
             # print(f"{author_name} said: {content} in {channel}. Channel ID: {channel_id}")
             # print(f"Mentions: {formatted_mentions}")

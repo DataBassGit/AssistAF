@@ -82,31 +82,6 @@ class Chatbot:
 
         self.logger = Logger('AsyncChat')
 
-    # async def run(self, message, author_name, channel, formatted_mentions, channel_id):
-    #     self.logger.log(f"Running Chat Loop... Message:{message}", 'info', 'Trinity')
-    #     self.message = message
-    #     self.author_name = self.format_string(author_name)
-    #     self.channel = str(channel)
-    #     self.formatted_mentions = formatted_mentions
-    #     self.ui.channel_id_layer_0 = channel_id  # Set the channel ID for layer 0
-    #
-    #     # save message to chat history
-    #     history, user_history = await self.chatman(message)
-    #
-    #     # run thought agent
-    #     await self.thought_agent(message, history, user_history)
-    #
-    #     # run theory agent
-    #     await self.theory_agent(message, history, user_history)
-    #
-    #     # run generate agent
-    #     await self.gen_agent(message, history, user_history)
-    #
-    #     # run reflect agent
-    #     await self.reflect_agent(message, history, user_history)
-    #
-    #     self.memories = []
-
     async def run_batch(self, messages):
         self.logger.log(f"Running Chat Loop...", 'info', 'Trinity')
         async with self.processing_lock:
@@ -209,7 +184,7 @@ class Chatbot:
         self.reflection = self.parse_lines()
 
         if self.reflection["Choice"] == "respond":
-            self.logger.log(f"Generated Response:{self.chat_response}", 'info', 'Trinity')
+            self.logger.log(f"Generated Response:{self.chat_response}", 'debug', 'Trinity')
             await self.ui.send_message(0, f"{self.chat_response}")
             self.save_memory(self.chat_response)
         elif self.reflection["Choice"] == "nothing":
@@ -463,10 +438,6 @@ class Chatbot:
                 await asyncio.sleep(30)
 
 
-async def on_message_old(content, author_name, channel, formatted_mentions, channel_id):
-    await bot.run(content, author_name, channel, formatted_mentions, channel_id)
-
-
 async def on_message(content, author_name, channel, formatted_mentions, channel_id):
     message_data = {
         "channel": channel,
@@ -492,39 +463,3 @@ if __name__ == '__main__':
 
     # Now, when DiscordClient's on_ready triggers, it will start process_channel_messages
     discord_client.client.run(discord_client.token)
-
-# if __name__ == '__main__':
-#     print("Starting")
-#     discord_client = DiscordClient([], on_message_callback=on_message)
-#     bot = Chatbot(discord_client)
-#     bot.ui = UI(discord_client)
-#
-#     # Get the existing event loop, or create a new one
-#     loop = asyncio.get_event_loop()
-#
-#     # Schedule your bot's process_channel_messages coroutine as a task in the loop
-#     bot.logger.log(f"Creating Process Channel Loop", 'debug', 'Trinity')
-#     loop.create_task(bot.process_channel_messages())
-#
-#     # Assuming discord_client.run() is an asyncio-compatible coroutine,
-#     # you can start it with run_until_complete for graceful shutdown handling.
-#     # If discord_client.run() is a blocking call and not asyncio-compatible,
-#     # you might need to adjust this pattern or ensure that the Discord client library
-#     # you're using supports asynchronous operation.
-#     try:
-#         bot.logger.log(f"Running Discord Client Loop", 'debug', 'Trinity')
-#         loop.run_until_complete(discord_client.run())
-#     except KeyboardInterrupt:
-#         # Handle any cleanup here if necessary
-#         pass
-#     finally:
-#         loop.close()
-
-# if __name__ == '__main__':
-#     print("Starting")
-#     # Create an instance of the DiscordClient once and pass it to the UI
-#     discord_client = DiscordClient([], on_message_callback=on_message)
-#     bot = Chatbot(discord_client)
-#     bot.ui = UI(discord_client)  # Pass the discord_client to the UI
-#     # Now, start the Discord client
-#     discord_client.run()
