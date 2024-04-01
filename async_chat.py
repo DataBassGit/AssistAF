@@ -67,7 +67,7 @@ class Chatbot:
         self.ui = UI(client)
         self.chat_history = None
         self.choice_parsed = None
-        self.messages_formatted = None
+        self.messages_formatted = ''
         self.action_execution = Action()
         self.action_selection = ActionSelectionAgent()
         self.selected_action = None
@@ -94,27 +94,29 @@ class Chatbot:
             self.logger.log(f"Message: {self.message}", 'info', 'Trinity')
 
             # Run Chat Manager
+            for index, each_message in enumerate(self.messages):
+                self.messages_formatted += f"\n\n{each_message['author']} said: {each_message['message']}\nTimestamp: {each_message['timestamp']}\nID: {index}"
+
             key_count = len(self.messages)
             print(self.messages)
             if key_count > 1:
-                self.result = self.cho.run(messages=self.messages)
+                self.result = self.cho.run(messages=self.messages_formatted)
                 try:
-                    self.choice_parsed = self.parse_lines()
+                    choice = self.parse_lines()
+                    self.choice_parsed = int(choice["message_id"])
                 except Exception as e:
                     self.logger.log(f"Choice Agent: Parse error - Exception: {e}\nResponse:{self.result}", 'info', 'Trinity')
             else:
                 self.choice_parsed = 0
 
-            self.message = messages[self.choice_parsed["message_id"]]
-            history, user_history = await self.chatman(self.message)
+            self.message = messages[self.choice_parsed]
 
             self.author_name = self.format_string(self.message["author"])
             self.channel = str(self.message["channel"])
             self.ui.channel_id_layer_0 = self.message["channel_id"]
             self.formatted_mentions = self.message["formatted_mentions"]
 
-            for each_message in self.messages:
-                self.messages_formatted += f"{each_message['author']} said: {each_message['message']}\nTimestamp: {each_message['timestamp']}\n"
+            history, user_history = await self.chatman(self.message)
 
             # run thought agent
             await self.thought_agent(self.message, history, user_history)
@@ -262,7 +264,7 @@ class Chatbot:
 
         # Save to the channel-specific collection
         for index, message in enumerate(self.messages):
-            if index == self.choice_parsed["message_id"]:
+            if index == self.choice_parsed:
                 size = self.storage.count_collection(f"a{self.channel}-chat_history")
                 collection_name = f"a{self.channel}-chat_history"
                 data = [str(user_chat)]
