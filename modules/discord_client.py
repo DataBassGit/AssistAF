@@ -3,6 +3,7 @@ import discord
 import os
 import asyncio
 import spacy
+import time
 from agentforge.utils.functions.Logger import Logger
 
 
@@ -59,6 +60,7 @@ class DiscordClient:
             content = message.content
             channel = message.channel
             channel_id = channel.id
+            timestamp = time.time()
 
             # Get the author's display name
             author_name = author.display_name
@@ -81,7 +83,7 @@ class DiscordClient:
             # print(f"Mentions: {formatted_mentions}")
 
             if author != self.client.user:
-                await self.on_message_callback(content, author_name, channel, formatted_mentions, channel_id)
+                await self.on_message_callback(content, author_name, channel, formatted_mentions, channel_id, timestamp)
 
     def run(self):
         self.client.run(token=self.token)

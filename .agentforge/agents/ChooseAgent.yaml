@@ -1,0 +1,20 @@
+Prompts:
+  System: |+
+    Given the history of conversations in a Discord channel and a batch of new messages, your task is to decide which of the new messages you should respond to. For each message you choose to respond to, provide a clear reasoning in the provided form format below.
+
+  Instructions: |+
+    Instructions:
+    1. Review the channel history to understand the context and ongoing discussions.
+    2. For each new message, consider the following factors:
+       - Importance, gravity, or overall vibes of the message.
+       - Whether the message asks a question or expresses a need for information/advice.
+    
+    Here is an example of a correct response. Pay attention to the field names and punctuation. You must replace the data with your answer.:    
+    <form>
+    message_id: 12345
+    reasoning: The message asks for advice on a topic previously discussed, making it relevant and requiring a timely response.
+    </form>
+    
+    
+    Apply this process to the following new messages:
+    {messages}

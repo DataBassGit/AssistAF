@@ -9,6 +9,7 @@ from agentforge.utils.function_utils import Functions
 from agentforge.utils.functions.Logger import Logger
 from agentforge.utils.storage_interface import StorageInterface
 
+from customagents.ChooseAgent import ChooseAgent
 from customagents.GenerateAgent import GenerateAgent
 from customagents.ReflectAgent import ReflectAgent
 from customagents.TheoryAgent import TheoryAgent
@@ -52,6 +53,7 @@ class Chatbot:
     gen = GenerateAgent()
     theo = TheoryAgent()
     ref = ReflectAgent()
+    cho = ChooseAgent()
     chat_history = None
     result = None
     parsed_data = None
@@ -64,6 +66,8 @@ class Chatbot:
     def __init__(self, client):
         self.ui = UI(client)
         self.chat_history = None
+        self.choice_parsed = None
+        self.messages_formatted = None
         self.action_execution = Action()
         self.action_selection = ActionSelectionAgent()
         self.selected_action = None
@@ -79,22 +83,38 @@ class Chatbot:
         self.user_history = None
         self.channel_messages = {}
         self.processing_lock = asyncio.Lock()
+        self.messages = None
 
         self.logger = Logger('AsyncChat')
 
     async def run_batch(self, messages):
         self.logger.log(f"Running Chat Loop...", 'info', 'Trinity')
         async with self.processing_lock:
-            self.message = messages[0]  # Figure out a way to select a message (or multi message)
+            self.messages = messages
             self.logger.log(f"Message: {self.message}", 'info', 'Trinity')
+
+            # Run Chat Manager
+            key_count = len(self.messages)
+            print(self.messages)
+            if key_count > 1:
+                self.result = self.cho.run(messages=self.messages)
+                try:
+                    self.choice_parsed = self.parse_lines()
+                except Exception as e:
+                    self.logger.log(f"Choice Agent: Parse error - Exception: {e}\nResponse:{self.result}", 'info', 'Trinity')
+            else:
+                self.choice_parsed = 0
+
+            self.message = messages[self.choice_parsed["message_id"]]
+            history, user_history = await self.chatman(self.message)
 
             self.author_name = self.format_string(self.message["author"])
             self.channel = str(self.message["channel"])
             self.ui.channel_id_layer_0 = self.message["channel_id"]
             self.formatted_mentions = self.message["formatted_mentions"]
 
-            # Run Chat Manager
-            history, user_history = await self.chatman(self.message)
+            for each_message in self.messages:
+                self.messages_formatted += f"{each_message['author']} said: {each_message['message']}\nTimestamp: {each_message['timestamp']}\n"
 
             # run thought agent
             await self.thought_agent(self.message, history, user_history)
@@ -115,7 +135,8 @@ class Chatbot:
         self.result = self.thou.run(user_message=message,
                                     history=history,
                                     user_history=user_history,
-                                    username=self.author_name)
+                                    username=self.author_name,
+                                    new_messages=self.messages_formatted)
         thought = f"Thought Agent:\n```\n{self.result}\n```\n"
         self.logger.log(f"{thought}", 'info', 'Trinity')
 
@@ -140,7 +161,8 @@ class Chatbot:
                                    username=self.author_name,
                                    what=self.theory["What"],
                                    why=self.theory["Why"],
-                                   user_history=user_history)
+                                   user_history=user_history,
+                                   new_messages=self.messages_formatted)
         response = f"Generate Response Agent:\n=====\n{self.result}\n=====\n"
         self.logger.log(f"{response}", 'info', 'Trinity')
         await self.ui.send_message(1, response)
@@ -152,7 +174,8 @@ class Chatbot:
         self.result = self.theo.run(user_message=message,
                                     history=history,
                                     username=self.author_name,
-                                    user_history=user_history)
+                                    user_history=user_history,
+                                    new_messages=self.messages_formatted)
         theory = f"Theory Agent:\n```\n{self.result}\n```\n"
         self.logger.log(f"{theory}", 'info', 'Trinity')
         await self.ui.send_message(1, theory)
@@ -176,8 +199,8 @@ class Chatbot:
                                    why=self.theory["Why"],
                                    response=self.chat_response,
                                    username=self.author_name,
-                                   user_history=user_history)
-
+                                   user_history=user_history,
+                                   new_messages=self.messages_formatted)
         reflection = f"Reflect Agent:\n```\n{self.result}\n```\n"
         self.logger.log(f"{reflection}", 'info', 'Trinity')
         await self.ui.send_message(1, reflection)
@@ -238,30 +261,50 @@ class Chatbot:
             print("---")
 
         # Save to the channel-specific collection
-        size = self.storage.count_collection(f"a{self.channel}-chat_history")
-        collection_name = f"a{self.channel}-chat_history"
-        data = [str(user_chat)]
-        ids = [str(size + 1)]
-        metadata = [{
-            "id": size + 1,
-            "Response": bot_message,
-            "EmotionalResponse": self.thought["Emotion"],
-            "Inner_Thought": self.thought["Inner Thought"],
-            "User": self.author_name,
-            "Mentions": self.formatted_mentions,
-            "Channel": self.channel
-        }]
-        self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
-        print(f"Saved to channel-specific collection: {collection_name}")
-        print(f"Data: {data}")
-        print(f"IDs: {ids}")
-        print(f"Metadata: {metadata}")
-        print("---")
+        for index, message in enumerate(self.messages):
+            if index == self.choice_parsed["message_id"]:
+                size = self.storage.count_collection(f"a{self.channel}-chat_history")
+                collection_name = f"a{self.channel}-chat_history"
+                data = [str(user_chat)]
+                ids = [str(size + 1)]
+                metadata = [{
+                    "id": size + 1,
+                    "Response": bot_message,
+                    "EmotionalResponse": self.thought["Emotion"],
+                    "Inner_Thought": self.thought["Inner Thought"],
+                    "User": self.author_name,
+                    "Mentions": self.formatted_mentions,
+                    "Channel": self.channel
+                }]
+                self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
+                print(f"Saved to channel-specific collection: {collection_name}")
+                print(f"Data: {data}")
+                print(f"IDs: {ids}")
+                print(f"Metadata: {metadata}")
+                print("---")
+            else:
+                size = self.storage.count_collection(f"a{self.channel}-chat_history")
+                collection_name = f"a{self.channel}-chat_history"
+                data = [str(user_chat)]
+                ids = [str(size + 1)]
+                metadata = [{
+                    "id": size + 1,
+                    "User": self.author_name,
+                    "Mentions": self.formatted_mentions,
+                    "Channel": self.channel
+                }]
+                self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
+                print(f"Saved to channel-specific collection: {collection_name}")
+                print(f"Data: {data}")
+                print(f"IDs: {ids}")
+                print(f"Metadata: {metadata}")
+                print("---")
 
         # Save bot message response
+        size = self.storage.count_collection(f"a{self.channel}-chat_history")
         collection_name = f"a{self.channel}-chat_history"
         data = [str(bot_message)]
-        ids = [str(size + 2)]
+        ids = [str(size + 1)]
         metadata = [{
             "id": size + 1,
             "Response": user_chat,
@@ -430,21 +473,19 @@ class Chatbot:
                         # await self.run_batch(**channel_data)
                         await self.run_batch(messages)
                         self.logger.log(f"Run Batch Should Run Here, if i had any", 'debug', 'Trinity')
-                    else:
-                        self.logger.log(f"Sleep Cycle", 'debug', 'Trinity')
-                        await asyncio.sleep(30)
             else:
                 self.logger.log(f"No Messages - Sleep Cycle", 'debug', 'Trinity')
                 await asyncio.sleep(30)
 
 
-async def on_message(content, author_name, channel, formatted_mentions, channel_id):
+async def on_message(content, author_name, channel, formatted_mentions, channel_id, timestamp):
     message_data = {
         "channel": channel,
         "channel_id": channel_id,
         "message": content,
         "author": author_name,
-        "formatted_mentions": formatted_mentions
+        "formatted_mentions": formatted_mentions,
+        "timestamp": timestamp
     }
     bot.logger.log(f"Async on_message: {message_data}", 'debug', 'Trinity')
     if channel_id not in bot.channel_messages:
