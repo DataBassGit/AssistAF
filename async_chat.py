@@ -105,7 +105,8 @@ class Chatbot:
                     choice = self.parse_lines()
                     self.choice_parsed = int(choice["message_id"])
                 except Exception as e:
-                    self.logger.log(f"Choice Agent: Parse error - Exception: {e}\nResponse:{self.result}", 'info', 'Trinity')
+                    self.logger.log(f"Choice Agent: Parse error - Exception: {e}\nResponse:{self.result}",
+                                    'info', 'Trinity')
             else:
                 self.choice_parsed = 0
 
