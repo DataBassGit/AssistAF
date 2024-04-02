@@ -7,9 +7,9 @@ Logging:
   Enabled: true
   Folder: ./Logs
   Files:
-    AgentForge: error
+    AgentForge: debug
     ModelIO: debug
-    Results: error
+    Results: debug
     Trinity: debug
 
 Paths:

@@ -9,15 +9,25 @@ Prompts:
     <setting>
     Location: {persona_location}
     Setting: {persona_setting}
-    Recent Chat History: {history}
-    Additional related history: {user_history}
     </setting>
+    
+    Recent Chat History: {history}
+    {new_messages}
+    
+    Additional related chat history: {user_history}
+
+    
+    
+    You remember the following: 
+    
+    <Memory Block>
+    {memories}
+    </Memory Block>
 
   Background: |+
     Consider the following message from the character named {username}:  {user_message}
 
     This makes you feel {emotion}.
-    You remember the following: {memories}.
     You think to yourself, {thought} This is because {reason}. 
 
   Background2: |+

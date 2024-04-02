@@ -110,25 +110,26 @@ class Chatbot:
                 self.choice_parsed = 0
 
             self.message = messages[self.choice_parsed]
+            print(f"Message variable: {self.message['message']}")
 
             self.author_name = self.format_string(self.message["author"])
             self.channel = str(self.message["channel"])
             self.ui.channel_id_layer_0 = self.message["channel_id"]
             self.formatted_mentions = self.message["formatted_mentions"]
 
-            history, user_history = await self.chatman(self.message)
+            history, user_history = await self.chatman(self.message['message'])
 
             # run thought agent
-            await self.thought_agent(self.message, history, user_history)
+            await self.thought_agent(self.message['message'], history, user_history)
 
             # run theory agent
-            await self.theory_agent(self.message, history, user_history)
+            await self.theory_agent(self.message['message'], history, user_history)
 
             # run generate agent
-            await self.gen_agent(self.message, history, user_history)
+            await self.gen_agent(self.message['message'], history, user_history)
 
             # run reflect agent
-            await self.reflect_agent(self.message, history, user_history)
+            await self.reflect_agent(self.message['message'], history, user_history)
 
             self.memories = []
 
@@ -228,7 +229,8 @@ class Chatbot:
                                         feedback=self.reflection["Reason"],
                                         username=self.author_name,
                                         user_history=user_history,
-                                        response=self.chat_response)
+                                        response=self.chat_response,
+                                        new_messages=self.messages_formatted)
             self.logger.log(f"Sending Response:{new_response}", 'info', 'Trinity')
             await self.ui.send_message(0, f"{new_response}")
             self.save_memory(new_response)
@@ -236,7 +238,7 @@ class Chatbot:
     def save_memory(self, bot_response):
         # Existing chat history saving logic
         bot_message = f"{bot_response}"
-        user_chat = f"{self.message}"
+        user_chat = f"{self.message['message']}"
 
         # New logic for saving to each category collection
         for category in self.categories:
@@ -477,7 +479,7 @@ class Chatbot:
                         self.logger.log(f"Run Batch Should Run Here, if i had any", 'debug', 'Trinity')
             else:
                 self.logger.log(f"No Messages - Sleep Cycle", 'debug', 'Trinity')
-                await asyncio.sleep(30)
+                await asyncio.sleep(5)
 
 
 async def on_message(content, author_name, channel, formatted_mentions, channel_id, timestamp):

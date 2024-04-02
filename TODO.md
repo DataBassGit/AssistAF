@@ -1,0 +1,5 @@
+- [ ] Message History format
+- [ ] Journal - Set Core Memories
+- [ ] Episodic Memory - Does not delete core memories
+- [ ] Scratch pad
+- [ ] Unique ID 
