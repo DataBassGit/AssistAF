@@ -60,7 +60,7 @@ class DiscordClient:
             content = message.content
             channel = message.channel
             channel_id = channel.id
-            timestamp = time.time()
+            timestamp = time.strftime('%a - %Y-%m-%d %H:%M:%S')
 
             # Get the author's display name
             author_name = author.display_name
