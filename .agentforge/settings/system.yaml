@@ -8,9 +8,9 @@ Logging:
   Folder: ./Logs
   Files:
     AgentForge: error
-    ModelIO: error
+    ModelIO: debug
     Results: error
-    Trinity: error
+    Trinity: debug
 
 Paths:
   Files: ./Files
