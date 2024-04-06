@@ -1,7 +1,12 @@
 import re
+from agentforge.utils.functions.Logger import Logger
+
+
+logger = Logger(__name__)
 
 
 class MessageParser:
+
     @staticmethod
     def parse_lines(result):
         """
@@ -86,3 +91,17 @@ class MessageParser:
                 formatted_entries.append(f"{timestamp} - {user}: {document}\n")
 
         return "\n".join(formatted_entries).strip()
+
+    @staticmethod
+    def prepare_message_format(messages: dict) -> str:
+        formatted_messages = []
+        for index, message in enumerate(messages):
+            # Add the formatted message to the list without leading newlines
+            formatted_messages.append(f"ID: {index}\n"  
+                                      f"Date: {message['timestamp']}\n"  # Check if were formatting the timestamp
+                                      f"Author: {message['author']}\n"
+                                      f"Message: {message['message']}")
+        # Join the messages with two newlines, putting newlines at the end instead of the beginning
+        formatted_messages = "\n\n".join(formatted_messages).strip()
+        logger.log(f"Formatted Messages:\n{formatted_messages}", 'debug', 'Trinity')
+        return formatted_messages

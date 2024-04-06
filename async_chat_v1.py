@@ -1,5 +1,7 @@
 import asyncio
 
+from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
+from agentforge.modules.ActionExecution import Action
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.functions.Logger import Logger
 from agentforge.utils.storage_interface import StorageInterface
@@ -11,7 +13,6 @@ from customagents.TheoryAgent import TheoryAgent
 from customagents.ThoughtAgent import ThoughtAgent
 from modules.discord_client import DiscordClient
 from Utilities.Parsers import MessageParser
-from Utilities.Memory import Memory
 from Utilities.UI import UI
 
 
@@ -24,17 +25,16 @@ class Chatbot:
 
     def __init__(self, client):
         self.ui = UI(client)
-        self.memory = Memory()
+        # self.memory = Memory()
         self.storage = StorageInterface().storage_utils
         self.parser = MessageParser
         self.chat_history = None
         self.choice_parsed = None
-        self.formatted_messages: str = ''
+        self.formatted_messages = ''
         self.functions = Functions()
         self.memories = []
         self.logger = Logger('AsyncChat')
         self.processing_lock = asyncio.Lock()
-
         self.channel_messages = {}
         self.user_history = None
         self.result = None
@@ -56,16 +56,28 @@ class Chatbot:
             "thought": dict
         }
 
-        self.messages: dict = {}
-        self.message = None
+        self.messages = None
+        self.message: dict = {}
 
     async def run_batch(self, messages):
         self.logger.log(f"Running Batch Loop...", 'info', 'Trinity')
         async with self.processing_lock:
             self.messages = messages
-            self.formatted_messages = self.parser.prepare_message_format(messages=self.messages)
-            self.choose_message()
-            await self.process_chosen_message()
+            self.prepare_message_format(self.messages)
+            chosen_message = self.choose_message()
+            await self.process_chosen_message(chosen_message)
+
+    def prepare_message_format(self, messages):
+        formatted_messages = []
+        for index, message in enumerate(messages):
+            # Add the formatted message to the list without leading newlines
+            formatted_messages.append(f"ID: {index}\n"  
+                                      f"Date: {message['timestamp']}\n"  # Check if were formatting the timestamp
+                                      f"Author: {message['author']}\n"
+                                      f"Message: {message['message']}")
+        # Join the messages with two newlines, putting newlines at the end instead of the beginning
+        self.formatted_messages = "\n\n".join(formatted_messages).strip()
+        self.logger.log(f"Formatted Messages:\n{self.formatted_messages}", 'info', 'Trinity')
 
     def choose_message(self):
         key_count = len(self.messages)
@@ -80,13 +92,15 @@ class Chatbot:
         else:
             self.choice_parsed = 0
 
-        self.message = self.messages[self.choice_parsed]
-        self.logger.log(f"Choice Agent Selection: {self.message['message']}", 'info', 'Trinity')
+        selected_message = self.messages[self.choice_parsed]
+        self.logger.log(f"Choice Agent Selection: {selected_message}", 'info', 'Trinity')
+        return selected_message
 
-    async def process_chosen_message(self):
+    async def process_chosen_message(self, message):
+
         self.ui.channel_id_layer_0 = self.message["channel_id"]
 
-        history, user_history = await self.chat_manager()
+        history, user_history = await self.chat_manager(self.message['message'])
 
         # Run thought agent
         await self.interact_with_agent('thought', self.message['message'], history, user_history)
@@ -200,20 +214,123 @@ class Chatbot:
                 )
                 self.logger.log(f"Sending New Response: {new_response}", 'info', 'Trinity')
                 await self.ui.send_message(0, f"{new_response}")
-                self.save_memories(new_response)
+                self.save_memory(new_response)
 
-    def save_memories(self, bot_response):
-        self.memory.set_memory_info(self.messages, self.choice_parsed, self.cognition, bot_response)
-        self.memory.save_all_memory()
+    def save_to_collection(self, collection_name, response_message, chat_message, metadata_extra=None):
+        data = [str(chat_message)]
+        size = self.storage.count_collection(collection_name)
+        ids = [str(size + 1)]
+        metadata = {
+            "id": size + 1,
+            "Response": response_message | None,
+            "Emotion": self.cognition["thought"]["Emotion"] | None,
+            "InnerThought": self.cognition["thought"]["InnerThought"] | None,
+            "User": self.message["author"],
+            "Mentions": self.message["formatted_mentions"],
+            "Channel": self.message["channel"]
+        }
+        if metadata_extra:
+            metadata.update(metadata_extra)
 
-    async def chat_manager(self):
-        chat_log = self.memory.fetch_history(self.message['channel'])
-        user_log = self.memory.fetch_history(self.message['author'],
-                                             query=self.message['message'],
-                                             is_user_specific=True)
+        self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=[metadata])
+        self.logger.log(f"Saved to {collection_name}:\nData={data}\nIDs={ids}\nMetadata={metadata}", 'debug',
+                        'Trinity')
 
-        self.logger.log(f"User Message: {self.message['message']}\n", 'Info', 'Trinity')
+    def save_category_memory(self, bot_response, user_chat):
+        categories = self.cognition["thought"]["Categories"].split(",")
+        for category in categories:
+            formatted_category = self.parser.format_string(category)
+            collection_name = formatted_category
+            # Example updated call to save_to_collection
+            self.save_to_collection(collection_name, bot_response, user_chat)
+
+    # this logic needs revision - Check self messages as it might be a list of dicts
+    def save_channel_memory(self, bot_response):
+        collection_name = f"a{self.message['channel']}-chat_history"
+        for index, message in enumerate(self.messages):
+            metadata_extra = {}
+            if index != self.choice_parsed:
+                bot_response = None
+                metadata_extra = {
+                    "EmotionalResponse": None,
+                    "Inner_Thought": None
+                }
+            # Note: Assuming user_chat is the content of the current message in self.messages being iterated
+            current_user_message = str(message['message'])
+            self.save_to_collection(collection_name, bot_response, current_user_message, metadata_extra)
+
+    # this also needs to be reviewed
+    def save_bot_response(self, bot_response, user_message):
+        collection_name = f"a{self.message['channel']}-chat_history"
+        metadata_extra = {"User": "Trinity"}
+        # Example updated call to save_to_collection
+        self.save_to_collection(collection_name, user_message, bot_response, metadata_extra)
+
+    def save_user_history(self, bot_response, user_chat):
+        collection_name = f"a{self.message['author']}-chat_history"
+        self.save_to_collection(collection_name, bot_response, user_chat)
+
+    def save_memory(self, bot_response):
+        user_message = self.message['message']
+
+        # Save memory to each category collection
+        self.save_category_memory(bot_response, user_message)
+
+        # Save to the channel-specific collection
+        self.save_channel_memory(bot_response)
+
+        # Save bot message response
+        self.save_bot_response(bot_response, user_message)
+
+        # Save to user history
+        self.save_user_history(bot_response, user_message)
+
+        # Save Journal would go here, if I had it!
+
+    def fetch_history(self, collection_name, query=None, is_user_specific=False):
+        """
+        Fetches and formats history (either chat or user) from the storage.
+
+        Args:
+            collection_name (str): The name of the collection to fetch the history from.
+            query (str, optional): The query to filter user-specific history. Defaults to None.
+            is_user_specific (bool, optional): Flag to indicate if the history is user-specific. Defaults to False.
+
+        Returns:
+            str: Formatted history.
+        """
+        collection_name = f"a{collection_name}-chat_history"
+        size = self.storage.count_collection(collection_name)
+        qsize = max(size - 20, 0)
+
+        if size == 0:
+            return "No Results!"
+
+        # Adjust the method of fetching history based on whether it's user-specific
+        if is_user_specific and query:
+            history = self.storage.query_memory(collection_name=collection_name, query=query, num_results=qsize)
+        else:
+            filters = {"id": {"$gte": qsize}}
+            history = self.storage.load_collection(collection_name=collection_name, where=filters)
+
+        return self.parser.format_history_entries(history, user_specific=is_user_specific)
+
+    async def chat_manager(self, message):
+        chat_log = self.fetch_history(message['channel'])
+        user_log = self.fetch_history(message['author'], query=message['message'], is_user_specific=True)
+
+        print(f"User Message: {message}\n")
         return chat_log, user_log
+
+    def memory_recall(self, categories, message, count=10):
+        collection_name = categories
+        query = message
+
+        new_memories = self.storage.query_memory(collection_name=collection_name, query=query, num_results=count)
+        self.logger.log(f"New Memories: {new_memories}", 'debug', 'Trinity')
+
+        # Directly extend self.memories with new_memories assuming new_memories is a list
+        self.memories.extend(new_memories)
 
     async def process_channel_messages(self):
         self.logger.log(f"Process Channel Messages Running...", 'debug', 'Trinity')
