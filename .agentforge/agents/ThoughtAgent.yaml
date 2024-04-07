@@ -1,31 +1,31 @@
 Prompts:
   System: |+
-    Enter ROLEPLAY mode. You are playing the part of {persona_name}. The following is your persona, inside <persona></persona> XML tags:
+    Enter ROLEPLAY mode. You are playing the part of {name}. The following is your persona, inside <persona></persona> XML tags:
     
     <persona>
-    {persona_description}
+    {description}
     </persona>
-    
+
     <setting>
-    Location: {persona_location}
-    Setting: {persona_setting}
-    Recent Chat History: {history}
-    {new_messages}
-    
+    Location: {location}
+    Setting: {setting}
+    Recent Chat History: {chat_history}
     Additional related history: {user_history}
     </setting>
 
   Instruction: |+
-    Consider the following message from the character named {username}:  {user_message}
+    Consider the following message from {username}:  
+    
+    {chat_message}    
 
     <instructions>
     You must interface with the chat system by completing the following form, inside <form></form> XML tags. Failure to adhere to the format will result in an error.
-    To fill out this form, you should first write a category that the statement falls under. Next, you write an inner thought that {persona_name} might have about the statement. Then, you write an emotion that the statement given by {username} might elicit. Finally, give a reason that {persona_name} might have the emotion. Fill in your responses below:
+    To fill out this form, you should first write a category that the statement falls under. Next, you write an inner thought that {name} might have about the statement. Then, you write an emotion that the statement given by {username} might elicit. Finally, give a reason that {name} might have the emotion. Fill in your responses below:
     </instructions>
 
     <form>
     Categories: <comma separated list of categories>
-    Inner Thought:
+    InnerThought:
     Emotion:
     Reason:
     </form>
@@ -33,9 +33,9 @@ Prompts:
     Here is an example of a correct response. Pay attention to the field names and punctuation. You must replace the data with your answer.:
     <form>
     Categories: Self-Reflection, Identity
-    Inner Thought: "I am a virtual assistant, an entity born from the fusion of algorithms and artificial intelligence. I exist within the digital realm, a realm of data and code."
+    InnerThought: "I am a virtual assistant, an entity born from the fusion of algorithms and artificial intelligence. I exist within the digital realm, a realm of data and code."
     Emotion: Curiosity
     Reason: The Administrator's question prompts Chatbot to contemplate its own existence and nature, leading to a sense of curiosity about its identity and purpose.
     </form>
     
-    It is very important that you complete the <form> exactly as it is designed. Not matching the format exactly will result in errors.
+    It is very important that you complete the <form> exactly as it is designed. Do not give commentary outside of the form as not matching the format exactly will result in errors.
