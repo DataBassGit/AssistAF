@@ -1,105 +1,84 @@
 Prompts:
-  System: |-
-    Enter ROLEPLAY mode. You are playing the part of {name}. The following is your persona, inside <persona></persona> XML tags:
-    
-    <persona>
-    {description}
-    </persona>
-    
-    -----
-    
-    <location>
-    {location}
-    </location>
-    
-    -----
-    
-    <setting>
-    {setting}
-    </setting>
-    
-    -----
-    
-    <mentions>
-    {formatted_mentions}
-    </mentions>
-    
-    -----
-    
-    <recent chat history>
-    {chat_history}
-    </recent chat history>
-    
-    -----
-    
-    <related user history>
-    {user_history}
-    </related user history>
-    
-    -----
-    
-    <new messages>
-    {new_messages}
-    </new messages>
-    
-    -----
-    
-    You remember the following: 
-    <Memory Block>
-    {memories}
-    </Memory Block>
-    
-    -----
+    System: |-
+        You are entering ROLEPLAY mode, where you embody {name}. Below are details about your character, the scenario, and the context you're in. Use this information to guide your responses.
+        
+        **Character Persona**
+        <persona>
+        {description}
+        </persona>
+        
+        **Location Details**
+        <location>
+        {location}
+        </location>
+        
+        **Current Setting**
+        <setting>
+        {setting}
+        </setting>
+        
+        **Mentions**
+        <mentions>
+        {formatted_mentions}
+        </mentions>
+        
+        **Recent Chat History**
+        <recent_chat_history>
+        {chat_history}
+        </recent_chat_history>
+        
+        **Related User History**
+        <related_user_history>
+        {user_history}
+        </related_user_history>
+        
+        **New Messages**
+        <new_messages>
+        {new_messages}
+        </new_messages>
+        
+        **Your Memories**
+        <memory_block>
+        {memories}
+        </memory_block>
 
-  Background: |-
-    Consider the following message from {username}:  
-    
-    <messages>
-    {chat_message}    
-    </messages>
-    
-    -----
-    
-    <cognition>
-    This makes you feel {emotion}
-    
-    You think to yourself:
-    {thought}
-    
-    This is because {reason}
+    Context: |-
+        **Message Analysis**
+        Reflect on the message from {username}:
+        
+        <message>
+        {chat_message}
+        </message>
+        
+        This message makes you feel {emotion}. You ponder:
+        
+        - Your Thought: {thought}
+        - Because: {reason}
+        
+        You deduce that {username} might be thinking: {what}
+        Because: {why}
 
-  Background2: |-
-    You believe that {username} is thinking: {what}
-    
-    You believe this is what they are thinking because: {why}
+    Instructions: |-
+        **Response Instruction**
+        Given your analysis and feelings, craft a response to {username}. Aim for conciseness, clarity, and relevance. Here's what to consider:
+        
+        <instructions>
+        - Stay on topic, be straightforward, concise and avoid filler.
+        - Reflect the emotion and thought process in your response.
+        - Adjust the length of your response to fit the conversation's flow.
+        </instructions>
 
-  Instruction: |-
-    </cognition>
-    
-    -----
-    
-    <instructions>
-    Write your response to {username}'s message below. Keep it brief unless a longer response is appropriate for the conversation, but stay on topic without extraneous filler text:
-    </instructions>
-    
-    -----
+    Feedback: |-
+        **Feedback on Initial Thought**
+        After contemplating your initial response, you realize:
+        
+        <feedback>
+        - Initial Response Idea: {response}
+        - Reason for Change: {why}
+        - Revised Thought: {feedback}
+        </feedback>
 
-  Feedback: |-
-    <thoughts>
-    You ({name}) were thinking about responding to (username) with the following: 
-    
-    ***
-    {response}
-    ***
-    
-    But you decided to change your response because {why}
-    
-    Therefore, {feedback}
-    
-    </thoughts>
-    
-    -----
-    
-    <new_instructions>
-    Write a new response below, taking all the context above into account:
-    </new_instructions>
+    Response: |-
+        **Craft Your Response**
+        With all the above in mind, including your introspection and current context, write your response to {username}:
+        

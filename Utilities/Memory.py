@@ -141,7 +141,6 @@ class Memory:
         self.logger.log(f"Recalling {num_memories_per_category} Memories per Category", 'debug', 'Memory')
         categories = categories.split(",")
         for category in categories:
-
             collection_name = f"{self.persona}_{category.strip()}"
             category_collection = self.parser.format_string(collection_name)
             self.logger.log(f"Fetching Category: {category}", 'debug', 'Memory')

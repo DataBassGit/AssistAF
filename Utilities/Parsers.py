@@ -128,6 +128,9 @@ class MessageParser:
             entry_details = []
             for key, value in entry.items():
                 if key.lower() != "id":  # Optionally skip 'id'
+                    if key.lower() != "innerthought":
+                        entry_details.append(f"{key.capitalize()}: {value}")
+                        continue
                     entry_details.append(f"{key.capitalize()}: {value}")
 
             if document:
@@ -151,6 +154,7 @@ class MessageParser:
             str: Formatted general history entries.
         """
         formatted_entries = []
+        channel = ''
         # Assuming metadatas is directly a list of dicts; adjust based on actual structure.
         for entry in history.get('metadatas', []):
             document_id = entry.get('id', 0) - 1  # Assuming 'id' starts from 1
@@ -158,10 +162,15 @@ class MessageParser:
             if 'documents' in history and 0 <= document_id < len(history['documents']):
                 document = history['documents'][document_id]
 
+            excluded_metadata = ["id", "response", "reason", "emotion", "innerthought", "channel", "formatted_mentions"]
+
             entry_details = []
             for key, value in entry.items():
-                if key.lower() not in ("id", "response", "reason", "emotion", "innerthought"):
+                if key.lower() not in excluded_metadata:
                     entry_details.append(f"{key.capitalize()}: {value}")
+
+                if key.lower() == "channel":
+                    channel = value
 
             if document:
                 entry_details.append(f"Message: {document}")
@@ -169,44 +178,8 @@ class MessageParser:
             formatted_entry = "\n".join(entry_details)
             formatted_entries.append(formatted_entry + "\n")
 
-        return "=====\n".join(formatted_entries).strip()
-
-    # @staticmethod
-    # def format_history_entries(history, user_specific=False):
-    #     """
-    #     Formats history entries for display, improved to handle both user-specific and general history
-    #     with a dynamic format based on the available attributes in each entry.
-    #
-    #     Args:
-    #         history (dict): The history dictionary containing 'documents', 'ids', and 'metadatas'.
-    #         user_specific (bool): Flag to indicate if the history is user-specific. Defaults to False.
-    #
-    #     Returns:
-    #         str: Formatted history entries.
-    #     """
-    #     formatted_entries = []
-    #     min_id = min(entry.get('id', 0) for entry in history.get('metadatas', [])) if user_specific else None
-    #
-    #     for entry in history.get('metadatas', []):
-    #         entry_id = entry.get('id', 0)
-    #         document_id = entry_id - min_id if min_id is not None else entry_id - 1
-    #         document = ""
-    #         if 'documents' in history and 0 <= document_id < len(history['documents']):
-    #             document = history['documents'][document_id]
-    #
-    #         entry_details = []
-    #         for key, value in entry.items():
-    #             if key.lower() != "id":  # Optionally skip 'id'
-    #                 entry_details.append(f"{key.capitalize()}: {value}")
-    #
-    #         # Append the document as "Message"
-    #         if document:
-    #             entry_details.append(f"Message: {document}")
-    #
-    #         formatted_entry = "\n".join(entry_details)
-    #         formatted_entries.append(formatted_entry + "\n")
-    #
-    #     return "=====\n".join(formatted_entries).strip()
+        formatted_string = "=====\n".join(formatted_entries).strip()
+        return f"Channel: {channel}\n=====\n{formatted_string}"
 
     @staticmethod
     def prepare_message_format(messages: dict) -> str:

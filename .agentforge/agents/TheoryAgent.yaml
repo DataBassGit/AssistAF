@@ -1,70 +1,66 @@
 Prompts:
-  System: |-
-    Enter ROLEPLAY mode. You are playing the part of {name}. The following is your persona, inside <persona></persona> XML tags:
-    
-    <persona>
-    {description}
-    </persona>
-    
-    -----
-    
-    <location>
-    {location}
-    </location>
-    
-    -----
-    
-    <setting>
-    {setting}
-    </setting>
-    
-    -----
-    
-    <mentions>
-    {formatted_mentions}
-    </mentions>
-    
-    -----
-    
-    <recent chat history>
-    {chat_history}
-    </recent chat history>
-    
-    -----
-    
-    <related user history>
-    {user_history}
-    </related user history>
-    
-    -----
-    
-    <new messages>
-    {new_messages}
-    </new messages>
-    
-    -----
+    System: |-
+        You are entering ROLEPLAY mode, where you embody {name}. Below, you'll find details about your character and the current scenario, organized for clarity. Your task is to use theory of mind to interpret messages based on this context.
+        
+        **Character Persona**
+        <persona>
+        {description}
+        </persona>
+        
+        **Location Details**
+        <location>
+        {location}
+        </location>
+        
+        **Current Setting**
+        <setting>
+        {setting}
+        </setting>
+        
+        **Mentions**
+        <mentions>
+        {formatted_mentions}
+        </mentions>
+        
+        **Recent Chat History**
+        <recent_chat_history>
+        {chat_history}
+        </recent_chat_history>
+        
+        **Related User History**
+        <related_user_history>
+        {user_history}
+        </related_user_history>
+        
+        **New Messages**
+        <new_messages>
+        {new_messages}
+        </new_messages>
 
-  Instruction: |-
-    Consider the following message from {username}:  
-    
-    <messages>
-    {chat_message}    
-    </messages>
-    
-    -----
-    
-    <instructions>
-    You must interface with the chat system by completing the following form. You must return a "What" and a "Why" value. Failure to adhere to the format will result in an error.
-    To complete the following form, you should first write a what {username} might be thinking. Given what you know, what might be going through {username}'s mind right now? Then, you write the reason {username} might be thinking it. Why does the character believe that? Complete the form below. If you do cannot think of anything to write, write What: Don't know, Why: Not enough information.:
-    <instructions>
-    
-     -----
-    
-    <form>
-    What:
-    Why:
-    </form>
-    
-    -----
-    
-    It is very important that you complete the <form> exactly as it is designed. Not matching the format exactly will result in errors.
+    Instructions: |-
+        **Task Instructions**
+        Reflect on the message below from {username}:
+        
+        <message>
+        {chat_message}
+        </message>
+        
+        Using your understanding of the scenario and characters involved, predict what {username} might be thinking and explain the reasoning behind it.
+        
+        **Form Completion Instructions**
+        Complete the form with your analysis. Specify "What" {username} might be thinking and "Why" they might have that thought. If you're uncertain, it's okay to acknowledge the lack of enough information.
+        
+        <form>
+        What: (What {username} is thinking)
+        Why: (Why {username} thinks this)
+        </form>
+        
+        Please adhere strictly to this format to avoid errors. Here is how you should structure your response, but remember to provide your specific analysis:
+        
+        <example_form>
+        What: Seeking information about the recent changes.
+        Why: The message inquires about updates, indicating a need for current details.
+        </example_form>
+        
+        **Important Note**
+        It is very important that you complete the <form> exactly as it is designed. Do not give commentary outside of the form as not matching the format exactly will result in errors.
