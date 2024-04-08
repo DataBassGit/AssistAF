@@ -81,7 +81,7 @@ class Chatbot:
 
         # Run Agents
         await self.run_agent('thought')
-        await self.memory.recall_categories(self.message['message'], self.cognition['thought']["Categories"], 5)
+        await self.memory.recall_categories(self.message['message'], self.cognition['thought']["Categories"], 3)
         await self.run_agent('theory')
         await self.run_agent('generate')
         await self.run_agent('reflect')
@@ -91,20 +91,14 @@ class Chatbot:
         await self.save_memories()
 
     async def run_agent(self, agent_name):
-        """
-        Runs a specified agent with given arguments and keyword arguments.
-
-        Parameters:
-        - agent_name: The name of the agent to run.
-        - *args: Positional arguments to pass to the agent's load_additional_data method.
-        - **kwargs: Keyword arguments to pass to the agent's load_additional_data method.
-        """
         self.logger.log(f"Running {agent_name.capitalize()} Agent... Message:{self.message['message']}", 'info',
                         'Trinity')
 
         memories = self.memory.get_current_memories()
         agent = self.agents[agent_name]
-        agent.load_additional_data(self.message, self.chat_history, self.user_history, memories, self.cognition)
+        # agent.load_additional_data(self.message, self.chat_history, self.user_history, memories, self.cognition)
+        agent.load_additional_data(self.messages, self.chosen_msg_index, self.chat_history,
+                                   self.user_history, memories, self.cognition)
         self.cognition[agent_name] = agent.run()
 
         # Send result to Brain Channel
@@ -112,50 +106,40 @@ class Chatbot:
         await self.ui.send_message(1, result_message)
 
     async def handle_reflect_agent_decision(self):
-        reflection = self.cognition['reflect']
-        self.response = self.cognition['generate']['result']
-        self.logger.log(f"Handle Reflection:{reflection}", 'debug', 'Trinity')
+        max_iterations = 2
+        iteration_count = 0
 
-        if "Choice" in reflection:
-            if reflection["Choice"] == "respond":
-                # Log the decision to respond
-                response_log = f"Generated Response:\n{self.response}\n"
-                self.logger.log(response_log, 'debug', 'Trinity')
+        while True:
+            iteration_count += 1
+            if iteration_count > max_iterations:
+                self.logger.log("Maximum iteration count reached, forcing response", 'warning', 'Trinity')
+                self.cognition['reflect']['Choice'] = 'respond'
 
-            if reflection["Choice"] == "nothing":
-                # Log the decision to not respond
-                self.response = f"... (Did not respond to {self.message['author']} because {reflection['Reason']})"
-                self.logger.log(f"Reason for not responding:\n{reflection['Reason']}\n", 'info', 'Trinity')
-                await self.ui.send_message(0, f"...")
-                return
+            reflection = self.cognition['reflect']
+            self.response = self.cognition['generate']['result']
+            self.logger.log(f"Handle Reflection:{reflection}", 'debug', 'Trinity')
 
-            await self.ui.send_message(0, self.response)
+            if "Choice" in reflection:
+                if reflection["Choice"] == "respond":
+                    response_log = f"Generated Response:\n{self.response}\n"
+                    self.logger.log(response_log, 'debug', 'Trinity')
+                    await self.ui.send_message(0, self.response)
+                    break
 
-            # -------------------------------------------------------------------------------
-            # -------------------------------------------------------------------------------
-            # -------------------------------------------------------------------------------
-            # DISCUSS THIS PART WITH DATA
-            # # Handle other cases, such as possibly generating a new response based on feedback
-            # new_response_params = {
-            #     "memories": self.memories,
-            #     "emotion": cognition.get("Emotion", ""),
-            #     "reason": cognition.get("Reason", ""),
-            #     "thought": cognition.get("InnerThought", ""),
-            #     "what": cognition.get("What", ""),
-            #     "why": cognition.get("Why", ""),
-            #     "feedback": cognition.get("Reason", ""),  # Assuming feedback is based on the reason
-            # }
-            # new_response = self.agents["generate"].run(
-            #     user_message=self.message['message'],
-            #     history=cognition.get("history", ""),  # Assuming we need to pass some history
-            #     user_history=cognition.get("user_history", ""),  # And user history
-            #     response=response,
-            #     new_messages=self.formatted_messages,
-            #     **new_response_params
-            # )
-            # self.logger.log(f"Sending New Response: {new_response}", 'info', 'Trinity')
-            # await self.ui.send_message(0, f"{new_response}")
-            # self.save_memories(new_response)
+                elif reflection["Choice"] == "nothing":
+                    self.logger.log(f"Reason for not responding:\n{reflection['Reason']}\n", 'info', 'Trinity')
+                    self.response = f"... (Did not respond to {self.message['author']} because {reflection['Reason']})"
+                    await self.ui.send_message(0, f"...")
+                    return
+
+                elif reflection["Choice"] == "change":
+                    self.logger.log(f"Changing Response:\n{self.response}\n Due To:\n{reflection['Reason']}",
+                                    'info', 'Trinity')
+                    await self.run_agent('generate')
+                    await self.run_agent('reflect')
+                    continue
+            self.logger.log(f"No Choice in Reflection Response:\n{reflection}", 'error', 'Trinity')
+            break
 
     async def save_memories(self):
         await self.memory.set_memory_info(self.messages, self.chosen_msg_index, self.cognition, self.response)
@@ -163,8 +147,8 @@ class Chatbot:
         self.memory.wipe_current_memories()
 
     async def chat_manager(self):
-        chat_log = self.memory.fetch_history(self.message['channel'])
-        user_log = self.memory.fetch_history(self.message['author'], query=self.message['message'], is_user_specific=True)
+        chat_log = await self.memory.fetch_history(self.message['channel'])
+        user_log = await self.memory.fetch_history(self.message['author'], query=self.message['message'], is_user_specific=True)
 
         self.logger.log(f"User Message: {self.message['message']}\n", 'Info', 'Trinity')
         return chat_log, user_log
@@ -172,7 +156,7 @@ class Chatbot:
     async def process_channel_messages(self):
         self.logger.log(f"Process Channel Messages Running...", 'debug', 'Trinity')
         while True:
-            self.logger.log(f"Process Channel Messages - New Loop!", 'debug', 'Trinity')
+            # self.logger.log(f"Process Channel Messages - New Loop!", 'debug', 'Trinity')
             if self.channel_messages:
                 for channel_layer_id in sorted(self.channel_messages.keys()):
                     messages = self.channel_messages.pop(channel_layer_id, None)
@@ -180,13 +164,16 @@ class Chatbot:
                     if messages:
                         await self.run_batch(messages)
             else:
-                self.logger.log(f"No Messages - Sleep Cycle", 'debug', 'Trinity')
+                # self.logger.log(f"No Messages - Sleep Cycle", 'debug', 'Trinity')
                 await asyncio.sleep(5)
 
 
 async def on_message(content, author_name, channel, formatted_mentions, channel_id, timestamp):
+    if formatted_mentions == '':
+        formatted_mentions = 'No Mentions.'
+
     message_data = {
-        "channel": channel,
+        "channel": str(channel),
         "channel_id": channel_id,
         "message": content,
         "author": author_name,

@@ -11,6 +11,8 @@ Logging:
     ModelIO: debug
     Results: error
     Trinity: debug
+    Memory: debug
+    Formatting: debug
 
 Paths:
   Files: ./Files
