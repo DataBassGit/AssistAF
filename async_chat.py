@@ -289,13 +289,13 @@ class Chatbot:
             else:
                 size = self.storage.count_collection(f"a{self.channel}-chat_history")
                 collection_name = f"a{self.channel}-chat_history"
-                data = [str(user_chat)]
+                data = [str(message['message'])]
                 ids = [str(size + 1)]
                 metadata = [{
                     "id": size + 1,
-                    "User": self.author_name,
-                    "Mentions": self.formatted_mentions,
-                    "Channel": self.channel
+                    "User": message['author'],
+                    "Mentions": message['formatted_mentions'],
+                    "Channel": message['channel']
                 }]
                 self.storage.save_memory(collection_name=collection_name, data=data, ids=ids, metadata=metadata)
                 print(f"Saved to channel-specific collection: {collection_name}")
@@ -380,7 +380,7 @@ class Chatbot:
 
         # User History
         size = self.storage.count_collection(f"a{self.author_name}-chat_history")
-        qsize = max(size - 20, 1)
+        qsize = max(size - 5, 1)
         user_log = ""
         print(f"qsize: {qsize}")
         user_history = self.storage.query_memory(collection_name=f"a{self.author_name}-chat_history", query=message,
@@ -422,7 +422,7 @@ class Chatbot:
                 result_dict[key] = value
         return result_dict
 
-    def memory_recall(self, categories, message, count=10):
+    def memory_recall(self, categories, message, count=2):
 
         collection_name = categories
         query = message
