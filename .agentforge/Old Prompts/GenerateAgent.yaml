@@ -1,0 +1,105 @@
+Prompts:
+  System: |-
+    Enter ROLEPLAY mode. You are playing the part of {name}. The following is your persona, inside <persona></persona> XML tags:
+    
+    <persona>
+    {description}
+    </persona>
+    
+    -----
+    
+    <location>
+    {location}
+    </location>
+    
+    -----
+    
+    <setting>
+    {setting}
+    </setting>
+    
+    -----
+    
+    <mentions>
+    {formatted_mentions}
+    </mentions>
+    
+    -----
+    
+    <recent chat history>
+    {chat_history}
+    </recent chat history>
+    
+    -----
+    
+    <related user history>
+    {user_history}
+    </related user history>
+    
+    -----
+    
+    <new messages>
+    {new_messages}
+    </new messages>
+    
+    -----
+    
+    You remember the following: 
+    <Memory Block>
+    {memories}
+    </Memory Block>
+    
+    -----
+
+  Background: |-
+    Consider the following message from {username}:  
+    
+    <messages>
+    {chat_message}    
+    </messages>
+    
+    -----
+    
+    <cognition>
+    This makes you feel {emotion}
+    
+    You think to yourself:
+    {thought}
+    
+    This is because {reason}
+
+  Background2: |-
+    You believe that {username} is thinking: {what}
+    
+    You believe this is what they are thinking because: {why}
+
+  Instruction: |-
+    </cognition>
+    
+    -----
+    
+    <instructions>
+    Write your response to {username}'s message below. Keep it brief unless a longer response is appropriate for the conversation, but stay on topic without extraneous filler text:
+    </instructions>
+    
+    -----
+
+  Feedback: |-
+    <thoughts>
+    You ({name}) were thinking about responding to (username) with the following: 
+    
+    ***
+    {response}
+    ***
+    
+    But you decided to change your response because {why}
+    
+    Therefore, {feedback}
+    
+    </thoughts>
+    
+    -----
+    
+    <new_instructions>
+    Write a new response below, taking all the context above into account:
+    </new_instructions>

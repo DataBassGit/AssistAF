@@ -1,4 +1,4 @@
-Persona: default
+Persona: Trinity
 OnTheFly: true
 SaveMemory: true
 TimeStampMemory: true
@@ -10,7 +10,9 @@ Logging:
     AgentForge: error
     ModelIO: debug
     Results: error
-    Trinity: error
+    Trinity: debug
+    Memory: debug
+    Formatting: debug
 
 Paths:
   Files: ./Files
