@@ -19,6 +19,15 @@ class Memory:
         self.chosen_message_index: int = 0
         self.current_memories: list = []
 
+    async def save_all_memory(self):
+        await self.save_category_memory()
+        await self.save_channel_memory()
+        await self.save_bot_response()
+        await self.save_user_history()
+        self.logger.log(f"Saved all memories.", 'debug', 'Trinity')
+
+        # Save Journal would go here, if I had it!
+
     async def save_to_collection(self, collection_name: str, chat_message: dict, response_message: str,
                                  metadata_extra=None):
         collection_size = self.storage.count_collection(collection_name)
@@ -88,14 +97,6 @@ class Memory:
         collection_name = self.parser.format_string(collection_name)
         self.logger.log(f"Saving User History to: {collection_name}\nMessage:\n{self.user_message}", 'debug', 'Memory')
         await self.save_to_collection(collection_name, self.user_message, self.response)
-
-    async def save_all_memory(self):
-        await self.save_category_memory()
-        await self.save_channel_memory()
-        await self.save_bot_response()
-        await self.save_user_history()
-
-        # Save Journal would go here, if I had it!
 
     async def set_memory_info(self,   message_batch: dict, chosen_message_index: int, cognition: dict, response: str):
         self.message_batch = message_batch
