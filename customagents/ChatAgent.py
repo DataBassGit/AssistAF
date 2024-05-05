@@ -21,7 +21,7 @@ class ChatAgent(Agent):
         self.data['thought'] = cognition['thought'].get('InnerThought')
         self.data['what'] = cognition['theory'].get("What", "Unknown.")
         self.data['why'] = cognition['theory'].get("Why", "Not enough information.")
-        self.data['response'] = cognition['generate'].get('DirectResponse')
+        self.data['response'] = cognition['generate']
         self.data['response_commentary'] = cognition['generate'].get('OptionalReflection')
         self.data['choice'] = cognition['reflect'].get("Choice")
         self.data['reflection_reason'] = cognition['reflect'].get("Reason")

@@ -67,7 +67,8 @@ class Chatbot:
                 self.chosen_msg_index = self.agents["choose"].run(messages=self.formatted_messages)
             except Exception as e:
                 self.logger.log(f"Choice Agent Error: {e}", 'error', 'Trinity')
-                self.chosen_msg_index = 0  # Default to first message if error occurs
+                self.chosen_msg_index = 0
+                # Default to first message if error occurs
         else:
             self.chosen_msg_index = 0
 
@@ -115,7 +116,7 @@ class Chatbot:
                 self.cognition['reflect']['Choice'] = 'respond'
 
             reflection = self.cognition['reflect']
-            self.response = self.cognition['generate'].get("DirectResponse")
+            self.response = self.cognition['generate'].get('result')
             self.logger.log(f"Handle Reflection:{reflection}", 'debug', 'Trinity')
 
             if "Choice" in reflection:
