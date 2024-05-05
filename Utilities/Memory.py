@@ -137,6 +137,9 @@ class Memory:
 
         return 'No Memories Found.'
 
+    async def recall_recent_memories(self):
+        pass
+
     async def recall_categories(self, message, categories, num_memories_per_category: int = 10):
         self.logger.log(f"Recalling {num_memories_per_category} Memories per Category", 'debug', 'Memory')
         categories = categories.split(",")
