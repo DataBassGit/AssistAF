@@ -96,7 +96,6 @@ class Chatbot:
 
         memories = self.memory.get_current_memories()
         agent = self.agents[agent_name]
-        # agent.load_additional_data(self.message, self.chat_history, self.user_history, memories, self.cognition)
         agent.load_additional_data(self.messages, self.chosen_msg_index, self.chat_history,
                                    self.user_history, memories, self.cognition)
         self.cognition[agent_name] = agent.run()
@@ -116,7 +115,7 @@ class Chatbot:
                 self.cognition['reflect']['Choice'] = 'respond'
 
             reflection = self.cognition['reflect']
-            self.response = self.cognition['generate']['result']
+            self.response = self.cognition['generate'].get("DirectResponse")
             self.logger.log(f"Handle Reflection:{reflection}", 'debug', 'Trinity')
 
             if "Choice" in reflection:
