@@ -51,8 +51,8 @@ ModelLibrary:
     module: "ollama"
     class: "Ollama"
     models:
-      DolphinMistral:
-        name: DolphinMistral
+      TestModel:
+        name: Phi3
         params:
           host_url: "http://localhost:11434/api/generate"
           allow_custom_value: True
@@ -70,12 +70,12 @@ ModelSettings:
 #  Model: claude
 #  API: openai_api
 #  Model: smart_fast_model
-#  API: claude3_api
-#  Model: claude-3
+  API: claude3_api
+  Model: claude-3
 #  API: oobabooga_api
 #  Model: oobabooga
-  API: ollama_api
-  Model: Llama3GGUF
+#  API: ollama_api
+#  Model: TestModel
   Params:
     max_new_tokens: 4000
     temperature: 0.5
