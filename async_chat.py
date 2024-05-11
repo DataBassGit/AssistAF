@@ -391,17 +391,17 @@ class Chatbot:
             user_log = "No Results!"
         else:
             if 'metadatas' in user_history and isinstance(user_history['metadatas'], list):
-                min_id = min(entry[0]['id'] for entry in user_history['metadatas'] if entry)
+                min_id = min(entry['id'] for entry in user_history['metadatas'] if entry)
                 for entry_list in user_history['metadatas']:
                     if entry_list:
-                        entry = entry_list[0]
+                        entry = entry_list
                         timestamp = entry.get('timestamp', '')
                         user = entry.get('User', '')
                         document_index = entry.get('id', 0) - min_id
                         if 'documents' in user_history and isinstance(user_history['documents'],
                                                                       list) and 0 <= document_index < len(
                                 user_history['documents']):
-                            document = user_history['documents'][document_index][0]
+                            document = user_history['documents'][document_index]
                             user_log += f"{timestamp} - {user} : {document}\n"
                         else:
                             print(f"Skipping document with id {entry.get('id', 0)} as it is out of range or missing.")
