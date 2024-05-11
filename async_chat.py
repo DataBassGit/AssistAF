@@ -379,8 +379,9 @@ class Chatbot:
                     print(f"Skipping document with id {document_id} as it is out of range.")
 
         # User History
+        #User history is cutting off some messages due to the if/else logic at line 402.
         size = self.storage.count_collection(f"a{self.author_name}-chat_history")
-        qsize = max(size - 5, 1)
+        qsize = max(size - (size - 5), 1)
         user_log = ""
         print(f"qsize: {qsize}")
         user_history = self.storage.query_memory(collection_name=f"a{self.author_name}-chat_history", query=message,
@@ -398,9 +399,8 @@ class Chatbot:
                         timestamp = entry.get('timestamp', '')
                         user = entry.get('User', '')
                         document_index = entry.get('id', 0) - min_id
-                        if 'documents' in user_history and isinstance(user_history['documents'],
-                                                                      list) and 0 <= document_index < len(
-                                user_history['documents']):
+                        if ('documents' in user_history and isinstance(user_history['documents'], list)
+                                and 0 <= document_index < len(user_history['documents'])):
                             document = user_history['documents'][document_index]
                             user_log += f"{timestamp} - {user} : {document}\n"
                         else:
