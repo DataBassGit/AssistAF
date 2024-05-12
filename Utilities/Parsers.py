@@ -182,6 +182,50 @@ class MessageParser:
         return f"Channel: {channel}\n=====\n{formatted_string}"
 
     @staticmethod
+    def format_journal_entries(history):
+        """
+        Formats chat logs for sending to the journal agent. The list is grouped by channel then ordered by ID.
+
+        Args:
+            history (dict): The history dictionary containing 'documents', 'ids', and 'metadatas'.
+
+        Returns:
+            str: Formatted general history entries.
+        """
+        channel_entries = {}
+        excluded_metadata = ["id", "response", "reason", "emotion", "innerthought", "formatted_mentions"]
+
+        # Group entries by channel
+        for i, entry in enumerate(history.get('metadatas', []), start=1):
+            document_id = i - 1
+            document = ""
+            if 'documents' in history and 0 <= document_id < len(history['documents']):
+                document = history['documents'][document_id]
+
+            channel = entry.get("channel", "")
+            if channel not in channel_entries:
+                channel_entries[channel] = []
+
+            entry_details = []
+            for key, value in entry.items():
+                if key.lower() not in excluded_metadata:
+                    entry_details.append(f"{key.capitalize()}: {value}")
+
+            if document:
+                entry_details.append(f"Message: {document}")
+
+            channel_entries[channel].append((entry.get("id", 0), "\n".join(entry_details)))
+
+        # Format entries grouped by channel and ordered by ID
+        formatted_entries = []
+        for channel, entries in channel_entries.items():
+            entries.sort(key=lambda x: x[0])  # Sort by ID within each channel
+            channel_formatted_entries = [entry[1] for entry in entries]
+            formatted_entries.append(f"Channel: {channel}\n=====\n" + "\n=====\n".join(channel_formatted_entries))
+
+        return "\n\n".join(formatted_entries).strip()
+
+    @staticmethod
     def prepare_message_format(messages: dict) -> str:
         formatted_messages = []
         for index, message in enumerate(messages):
