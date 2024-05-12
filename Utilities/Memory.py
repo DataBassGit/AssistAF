@@ -66,7 +66,7 @@ class Memory:
             await self.save_to_collection(category_collection, self.user_message, self.response)
 
     async def save_channel_memory(self):
-        collection_name = f"a{self.user_message['channel']_chat_history"
+        collection_name = f"a{self.user_message['channel']}_chat_history"
         collection_name = self.parser.format_string(collection_name)
         for index, message in enumerate(self.message_batch):
             metadata_extra = {}
