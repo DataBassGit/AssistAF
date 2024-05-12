@@ -11,3 +11,7 @@ logs/
 
 Journal/
 /Logs/
+
+Utilities/__pycache__/
+
+Tests/

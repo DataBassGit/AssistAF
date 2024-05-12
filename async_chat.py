@@ -97,9 +97,15 @@ class Chatbot:
 
         memories = self.memory.get_current_memories()
         agent = self.agents[agent_name]
-        agent.load_additional_data(self.messages, self.chosen_msg_index, self.chat_history,
-                                   self.user_history, memories, self.cognition)
-        self.cognition[agent_name] = agent.run()
+        # agent.load_additional_data(self.messages, self.chosen_msg_index, self.chat_history,
+        #                            self.user_history, memories, self.cognition)
+        agent_vars = {'messages': self.messages, # batch_messages
+                      'chosen_msg_index': self.chosen_msg_index, # selected_message
+                      'chat_history': self.chat_history, # chat_history
+                      'user_history': self.user_history, # user_history
+                      'memories': memories, # memories
+                      'cognition': self.cognition} # cognition
+        self.cognition[agent_name] = agent.run(**agent_vars)
 
         # Send result to Brain Channel
         result_message = f"{agent_name.capitalize()} Agent:\n```{str(self.cognition[agent_name]['result'])}```"
@@ -148,7 +154,9 @@ class Chatbot:
 
     async def chat_manager(self):
         chat_log = await self.memory.fetch_history(self.message['channel'])
-        user_log = await self.memory.fetch_history(self.message['author'], query=self.message['message'], is_user_specific=True)
+        user_log = await self.memory.fetch_history(self.message['author'],
+                                                   query=self.message['message'],
+                                                   is_user_specific=True)
 
         self.logger.log(f"User Message: {self.message['message']}\n", 'Info', 'Trinity')
         return chat_log, user_log

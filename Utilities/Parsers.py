@@ -116,14 +116,14 @@ class MessageParser:
         """
         formatted_entries = []
         # Assuming metadatas is a nested list structure; adjust if it's different.
-        min_id = min(entry.get('id', 0) for entry in history.get('metadatas', [[]])[0])
+        min_id = min(entry.get('id', 0) for entry in history.get('metadatas', []))
 
-        for entry in history.get('metadatas', [[]])[0]:
+        for i, entry in enumerate(history.get('metadatas', []), start=1):
             entry_id = entry.get('id', 0)
-            document_id = entry_id - min_id
+            document_id = i - 1
             document = ""
-            if 'documents' in history and 0 <= document_id < len(history['documents'][0]):
-                document = history['documents'][0][document_id]
+            if 'documents' in history and 0 <= document_id < len(history['documents']):
+                document = history['documents'][document_id]
 
             entry_details = []
             for key, value in entry.items():
@@ -156,8 +156,8 @@ class MessageParser:
         formatted_entries = []
         channel = ''
         # Assuming metadatas is directly a list of dicts; adjust based on actual structure.
-        for entry in history.get('metadatas', []):
-            document_id = entry.get('id', 0) - 1  # Assuming 'id' starts from 1
+        for i, entry in enumerate(history.get('metadatas', []), start=1):
+            document_id = i - 1  # Assuming 'id' starts from 1
             document = ""
             if 'documents' in history and 0 <= document_id < len(history['documents']):
                 document = history['documents'][document_id]

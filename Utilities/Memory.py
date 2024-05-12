@@ -59,14 +59,14 @@ class Memory:
     async def save_category_memory(self):
         categories = self.cognition["thought"]["Categories"].split(",")
         for category in categories:
-            collection_name = f"{self.persona}_{category.strip()}"
+            collection_name = f"{category.strip()}"
             category_collection = self.parser.format_string(collection_name)
             self.logger.log(f"Saving Category to: {category_collection}\nMessage:\n{self.user_message}",
                             'debug', 'Memory')
             await self.save_to_collection(category_collection, self.user_message, self.response)
 
     async def save_channel_memory(self):
-        collection_name = f"{self.persona}_{self.user_message['channel']}_chat_history"
+        collection_name = f"a{self.user_message['channel']_chat_history"
         collection_name = self.parser.format_string(collection_name)
         for index, message in enumerate(self.message_batch):
             metadata_extra = {}
@@ -87,13 +87,13 @@ class Memory:
         message['message'] = self.response
         message['author'] = self.persona
 
-        collection_name = f"{self.persona}_{message['channel']}_chat_history"
+        collection_name = f"a{message['channel']}_chat_history"
         collection_name = self.parser.format_string(collection_name)
         self.logger.log(f"Saving Bot Response to: {collection_name}\nMessage:\n{message}", 'debug', 'Memory')
         await self.save_to_collection(collection_name, message, self.user_message['message'])
 
     async def save_user_history(self):
-        collection_name = f"{self.persona}_{self.user_message['author']}_chat_history"
+        collection_name = f"a{self.user_message['author']}_chat_history"
         collection_name = self.parser.format_string(collection_name)
         self.logger.log(f"Saving User History to: {collection_name}\nMessage:\n{self.user_message}", 'debug', 'Memory')
         await self.save_to_collection(collection_name, self.user_message, self.response)
@@ -106,7 +106,7 @@ class Memory:
         self.response = response
 
     async def fetch_history(self, collection_name, query=None, is_user_specific=False, query_size: int = 20):
-        collection_name = f"{self.persona}_{collection_name}_chat_history"
+        collection_name = f"a{collection_name}_chat_history"
         collection_name = self.parser.format_string(collection_name)
         self.logger.log(f"Fetch History from: {collection_name}\n", 'debug', 'Memory')
 
@@ -145,9 +145,9 @@ class Memory:
         self.logger.log(f"Recalling {num_memories_per_category} Memories per Category", 'debug', 'Memory')
         categories = categories.split(",")
         for category in categories:
-            collection_name = f"{self.persona}_{category.strip()}"
+            collection_name = f"{category.strip()}"
             category_collection = self.parser.format_string(collection_name)
-            self.logger.log(f"Fetching Category: {category}", 'debug', 'Memory')
+            self.logger.log(f"Fetching Category: {category_collection}", 'debug', 'Memory')
             recalled_memories = self.storage.query_memory(collection_name=category_collection,
                                                           query=message,
                                                           num_results=num_memories_per_category)
