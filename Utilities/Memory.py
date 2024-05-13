@@ -44,6 +44,7 @@ class Memory:
             "Channel": str(chat_message["channel"]),
             "Categories": str(self.cognition["thought"]["Categories"])
         }
+        # Need to implement a last accessed metadata
 
         if metadata_extra:
             metadata.update(metadata_extra)
