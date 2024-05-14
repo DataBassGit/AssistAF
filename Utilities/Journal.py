@@ -49,7 +49,7 @@ class Journal:
         Returns:
             str: The path of the created file.
         """
-        folder_path = '..\\Journal'
+        folder_path = '.\\Journal'
         file_name = datetime.now().strftime('%Y-%m-%d')
         # Ensure the folder exists, create it if not
         os.makedirs(folder_path, exist_ok=True)
