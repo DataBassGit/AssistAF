@@ -12,6 +12,7 @@
 - Single branch tree-of-thought
 - Multi-user interaction
 - Multi-channel response
+- ***NEW*** - Journal/Diary
 
 ## Configure your Environment Variables:
 
@@ -28,7 +29,7 @@ You will also need to install AgentForge
 ## run:
 
 ```commandline
-python chat.py
+python async_chat.py
 ```
 This will start the bot. You will need to give the bot a few seconds to connect to the discord server. Once it is ready, you will see the bot in the members list.
 
@@ -92,11 +93,15 @@ Chatbot/
 
 ## Overview
 
-- **StorageInterface**: The bot uses a `StorageInterface` to interact with a `chromadb` vector database. This is used for both storing chat history and retrieving it.
+- **Memory**: The bot uses a `StorageInterface` to interact with a `chromadb` vector database. This is used for both storing chat history and retrieving it.
   
 - **Chatbot Class**: This is the primary class. It consists of several agents and methods to process the chat.
 
-- **UI Class**: Wrapper for the discord client. Handles sending and receiving messages and populating channel ids.
+- **UI Utility**: Wrapper for the discord client. Handles sending and receiving messages and populating channel ids.
+
+- **Parsers**: This is a collection of tools for cleaning up and formatting prompts and table names, as well as for parsing the responses of the different bots.
+
+- **Journal**: This utility handles writing the journals. It is a two prompt process that occurs every 100 messages. (Can be edited in memory.py)
 
 ## Agents Interaction
 
