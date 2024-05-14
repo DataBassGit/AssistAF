@@ -21,6 +21,15 @@ Prompts:
     <Memory Block>
     {memories}
     </Memory Block>
+    
+  Journal: |+
+    
+    
+    You also wrote in your journal about this. Here are the journal entries you remember:
+    
+    <Journal Block>
+    {journals}
+    </Journal Block>
 
   Background: |+
     Consider the following message from the character named {username}:  {chat_message}

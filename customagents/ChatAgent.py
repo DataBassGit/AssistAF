@@ -19,7 +19,7 @@ class ChatAgent(Agent):
 
         self.data['emotion'] = self.data['cognition']['thought'].get('Emotion')
         self.data['reason'] = self.data['cognition']['thought'].get('Reason')
-        self.data['thought'] = self.data['cognition']['thought'].get('InnerThought')
+        self.data['thought'] = self.data['cognition']['thought'].get('Inner Thought')
         self.data['what'] = self.data['cognition']['theory'].get("What", "Unknown.")
         self.data['why'] = self.data['cognition']['theory'].get("Why", "Not enough information.")
         self.data['response'] = self.data['cognition']['generate']

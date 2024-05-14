@@ -116,7 +116,7 @@ class MessageParser:
         """
         formatted_entries = []
         # Assuming metadatas is a nested list structure; adjust if it's different.
-        min_id = min(entry.get('id', 0) for entry in history.get('metadatas', []))
+        # min_id = min(entry.get('id', 0) for entry in history.get('metadatas', []))
 
         for i, entry in enumerate(history.get('metadatas', []), start=1):
             entry_id = entry.get('id', 0)
@@ -127,8 +127,8 @@ class MessageParser:
 
             entry_details = []
             for key, value in entry.items():
-                if key.lower() != "id":  # Optionally skip 'id'
-                    if key.lower() != "innerthought":
+                if key.lower() not in ["id", "unixtimestamp"]:  # Optionally skip 'id'
+                    if key.lower() != "inner thought":
                         entry_details.append(f"{key.capitalize()}: {value}")
                         continue
                     entry_details.append(f"{key.capitalize()}: {value}")

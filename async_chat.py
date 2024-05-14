@@ -82,8 +82,8 @@ class Chatbot:
 
         # Run Agents
         await self.run_agent('thought')
+        await self.memory.recall_journal_entry(self.message['message'], self.cognition['thought']["Categories"], 3)
         await self.memory.recall_categories(self.message['message'], self.cognition['thought']["Categories"], 3)
-        # await self.memory.recall_journal_entry(self.message['message'], self.cognition['thought']["Categories"], 3)
         await self.run_agent('theory')
         await self.run_agent('generate')
         await self.run_agent('reflect')
@@ -97,6 +97,7 @@ class Chatbot:
                         'Trinity')
 
         memories = self.memory.get_current_memories()
+        journals = self.memory.get_current_journals()
         agent = self.agents[agent_name]
         # agent.load_additional_data(self.messages, self.chosen_msg_index, self.chat_history,
         #                            self.user_history, memories, self.cognition)
@@ -105,6 +106,7 @@ class Chatbot:
                       'chat_history': self.chat_history, # chat_history
                       'user_history': self.user_history, # user_history
                       'memories': memories, # memories
+                      'journals': journals, # journals
                       'cognition': self.cognition} # cognition
         self.cognition[agent_name] = agent.run(**agent_vars)
 

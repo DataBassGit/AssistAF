@@ -94,7 +94,7 @@ class Journal:
             metadata = {
                 "id": collection_size + 1,
                 "Source": self.filepath,
-                "Source_ID": sourceid,
+                "Source_ID": sourceid + 1,
             }
             print(f"Saved chunk:\n\n{chunk.content}\nMetadata:\n{metadata}\n=====")
 
