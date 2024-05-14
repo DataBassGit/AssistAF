@@ -83,6 +83,7 @@ class Chatbot:
         # Run Agents
         await self.run_agent('thought')
         await self.memory.recall_categories(self.message['message'], self.cognition['thought']["Categories"], 3)
+        # await self.memory.recall_journal_entry(self.message['message'], self.cognition['thought']["Categories"], 3)
         await self.run_agent('theory')
         await self.run_agent('generate')
         await self.run_agent('reflect')

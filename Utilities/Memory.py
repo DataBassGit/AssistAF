@@ -26,7 +26,7 @@ class Memory:
         await self.save_user_history()
         self.logger.log(f"Saved all memories.", 'debug', 'Trinity')
 
-        # Save Journal would go here, if I had it!
+        # Save Journal would go here, if I had it! - This was implemented in save_channel_memory()
 
     async def save_to_collection(self, collection_name: str, chat_message: dict, response_message: str,
                                  metadata_extra=None):
@@ -81,6 +81,7 @@ class Memory:
                 }
             self.logger.log(f"Saving Channel to: {collection_name}\nMessage:\n{message}", 'debug', 'Memory')
             await self.save_to_collection(collection_name, message, bot_response, metadata_extra)
+            await self.save_to_collection('journal_log_table', message, bot_response, metadata_extra)
 
     # this also needs to be reviewed
     async def save_bot_response(self):
@@ -160,6 +161,121 @@ class Memory:
                 return
 
             self.logger.log(f"No Memories Recalled For Category: {category}", 'debug', 'Memory')
+
+    async def save_journal_log(self):
+        collection_name = 'journal_log_table'
+        for index, message in enumerate(self.message_batch):
+            metadata_extra = {}
+            bot_response = self.response
+            if index != self.chosen_message_index:
+                bot_response = None
+                metadata_extra = {
+                    "Emotion": None,
+                    "InnerThought": None,
+                    "Categories": None
+                }
+            self.logger.log(f"Saving Channel to: {collection_name}\nMessage:\n{message}",
+                            'debug', 'Memory')
+            await self.save_to_collection(collection_name, message, bot_response, metadata_extra)
+
+    async def recall_journal_entry(self, message, categories, num_entries: int = 5):
+        self.logger.log(f"Recalling {num_entries} entries from the journal", 'debug', 'Memory')
+        journal_query = f"{message}\n\n Related Categories: {categories}"
+        collection_name = 'journal_chunks_table'
+        journal_chunks = self.storage.query_memory(
+                                                collection_name=collection_name,
+                                                query=journal_query,
+                                                num_results=num_entries
+                                                )
+        if journal_chunks:
+            self.logger.log(f"Recalled Memories:\n{journal_chunks}", 'debug', 'Memory')
+
+            # Set the relevance threshold
+            relevance_threshold = 0.65  # Adjust this value as needed
+
+            # Create a set to store unique source_ids
+            unique_source_ids = set()
+
+            # Create a list to store the recalled memories
+            recalled_memories = {}
+            for chunk in journal_chunks:
+                pass
+                # This should look at the distances for each chunk that are provided by ChromaDB and make sure they
+                # meet a level of relevance based on a predefined float.
+                # Then, it should verify that the source_id value in the metadata only occurs once. Finally, it will
+                # retrieve the full journal entry based on the source_id from the 'whole_journal_entries' table.
+
+                # Check if the distance meets the relevance threshold
+                if chunk['distance'] >= relevance_threshold:
+                    source_id = chunk['metadata']['source_id']
+
+                    # Retrieve the full journal entry based on the source_id
+                    full_entry = self.storage.get_memory(
+                        collection_name='whole_journal_entries',
+                        memory_id=source_id
+                    )
+
+                    if full_entry:
+                        # Add the full entry to the recalled_memories dictionary
+                        recalled_memories[source_id] = full_entry
+
+            memories = self.parser.format_user_specific_history_entries(recalled_memories)
+            # Add recalled memories to current memories
+            self.current_memories.append(memories)
+        self.logger.log(f"The following journal entries were retrieved: {self.current_memories}", 'debug', 'Memory')
+        return
+        # self.current_memories gets pulled by chat.py using get_current_memories()
+        # this needs to pull X number of memories and format them for loading into the prompt.
+
+    async def recall_journal_entry2(self, message, categories, num_entries: int = 5):
+        self.logger.log(f"Recalling {num_entries} entries from the journal", 'debug', 'Memory')
+        journal_query = f"{message}\n\n Related Categories: {categories}"
+        collection_name = 'journal_chunks_table'
+        journal_chunks = self.storage.query_memory(
+            collection_name=collection_name,
+            query=journal_query,
+            num_results=num_entries
+        )
+        if journal_chunks:
+            self.logger.log(f"Recalled Memories:\n{journal_chunks}", 'debug', 'Memory')
+
+            # Set the relevance threshold
+            relevance_threshold = 0.65  # Adjust this value as needed
+
+            # Create a dictionary to store the recalled memories
+            recalled_memories = {
+                'ids': [],
+                'embeddings': None,
+                'metadatas': [],
+                'documents': []
+            }
+
+            for i in range(len(journal_chunks['ids'])):
+                distance = journal_chunks['distances'][i]
+                if distance >= relevance_threshold:
+                    source_id = journal_chunks['metadatas'][i]['Source_ID']
+
+                    filter = {"id": {"$eq": source_id}}
+
+                    # Retrieve the full journal entry based on the source_id
+                    full_entry = self.storage.load_collection(
+                        collection_name='whole_journal_entries',
+                        where=filter
+                    )
+
+                    if full_entry:
+                        # Add the relevant fields to the recalled_memories dictionary
+                        recalled_memories['ids'].append(full_entry['ids'][0])
+                        recalled_memories['metadatas'].append({key: value for key, value in full_entry['metadatas'][0].items() if key.lower() not in ['source', 'isotimestamp', 'unixtimestamp']})
+                        recalled_memories['documents'].append(full_entry['documents'][0])
+
+
+
+            memories = self.parser.format_user_specific_history_entries(recalled_memories)
+            # Add recalled memories to current memories
+            self.current_memories.append(memories)
+            print(f"\n\nCurrent Memories:\n{self.current_memories}")
+            return memories
 
     def wipe_current_memories(self):
         self.current_memories = []

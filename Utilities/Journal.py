@@ -1,5 +1,6 @@
 from agentforge.utils.storage_interface import StorageInterface
 from customagents.JournalAgent import JournalAgent
+from customagents.JournalThoughtAgent import JournalThoughtAgent
 from Utilities.Parsers import MessageParser
 import os
 from datetime import datetime
@@ -12,11 +13,14 @@ class Journal:
         self.storage = StorageInterface().storage_utils
         self.parser = MessageParser
         self.journal = JournalAgent()
+        self.journalthought = JournalThoughtAgent()
         self.results = ''
         self.filepath = ''
+        self.thoughts = None
 
     def do_journal(self):
         self.write_entry()
+        self.journal_reflect()
         try:
             path = self.save_journal()
             print(f"File created: {path}")
@@ -30,6 +34,12 @@ class Journal:
         messages = self.parser.format_journal_entries(log)
         self.results = self.journal.run(chat_log=messages)
         return self.results
+
+    def journal_reflect(self):
+        thoughts = self.journalthought.run(journal_entry=self.results)
+        parsed_thoughts = self.parser.parse_lines(thoughts)
+        self.thoughts = parsed_thoughts
+        return self.thoughts
 
     def save_journal(self):
         """
@@ -68,6 +78,9 @@ class Journal:
         metadata = {
             "id": sourceid + 1,
             "Source": self.filepath,
+            "Categories": self.thoughts['Categories'],
+            "Inner Thought": self.thoughts['Inner Thought'],
+            "Reason": self.thoughts['Reason']
         }
         self.storage.save_memory(collection_name='whole_journal_entries', data=self.results, ids=source_id_string, metadata=[metadata])
         print(f"Saved journal entry:\n\n{self.results}\nMetadata:\n{metadata}\n-----")
@@ -87,15 +100,31 @@ class Journal:
 
             self.storage.save_memory(collection_name='journal_chunks_table', data=chunk.content, ids=memory_id, metadata=[metadata])
 
+    def load_journals_from_backup(self, folder_path):
+        for filename in os.listdir(folder_path):
+            # Check if the file has a .md extension
+            if filename.endswith(".md"):
+                file_path = os.path.join(folder_path, filename)
+                self.filepath = os.path.abspath(file_path)
+
+                # Read the contents of the file
+                with open(self.filepath, "r", encoding="utf-8") as file:
+                    file_contents = file.read()
+
+                # Print the file contents
+                print(f"Contents of {filename}:")
+                print(file_contents)
+                print("---")
+                self.results = file_contents
+                self.journal_reflect()
+                self.journal_to_db()
+
 
 if __name__ == '__main__':
-
+    # Loads Journals from saved journal entries.
+    # This will send each journal to the LLM and generate
+    # thoughts, in a similar manner to the thought agent.
+    # All journals must be .md files.
     journal = Journal()
-    completed_journal = journal.write_entry()
-    try:
-        path = journal.save_journal()
-        print(f"File created: {path}")
-    except Exception as e:
-        print(f"Exception occurred {e}")
-    journal.journal_to_db()
-
+    folder_path = "..\\Journal"
+    journal.load_journals_from_backup(folder_path)
