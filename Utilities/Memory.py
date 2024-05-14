@@ -94,6 +94,7 @@ class Memory:
         collection_name = self.parser.format_string(collection_name)
         self.logger.log(f"Saving Bot Response to: {collection_name}\nMessage:\n{message}", 'debug', 'Memory')
         await self.save_to_collection(collection_name, message, self.user_message['message'])
+        await self.save_to_collection('journal_log_table', message, self.user_message['message'])
 
     async def save_user_history(self):
         collection_name = f"a{self.user_message['author']}_chat_history"
@@ -240,5 +241,15 @@ class Memory:
         self.current_memories = []
         self.current_journals = []
 
-    def check_journal(self):
-        pass
+    async def check_journal(self):
+        count = self.storage.count_collection('journal_log_table')
+        print(count)
+        if count >= 100:
+            from Utilities.Journal import Journal
+            journal_function = Journal()
+            journal_written = journal_function.do_journal()
+            if journal_written:
+                self.storage.delete_collection('journal_log_table')
+            return journal_written
+        else:
+            return None

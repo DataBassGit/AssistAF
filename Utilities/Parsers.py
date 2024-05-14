@@ -127,7 +127,7 @@ class MessageParser:
 
             entry_details = []
             for key, value in entry.items():
-                if key.lower() not in ["id", "unixtimestamp"]:  # Optionally skip 'id'
+                if key.lower() not in ["id", "Unixtimestamp"]:  # Optionally skip 'id'
                     if key.lower() != "inner thought":
                         entry_details.append(f"{key.capitalize()}: {value}")
                         continue
@@ -162,7 +162,7 @@ class MessageParser:
             if 'documents' in history and 0 <= document_id < len(history['documents']):
                 document = history['documents'][document_id]
 
-            excluded_metadata = ["id", "response", "reason", "emotion", "innerthought", "channel", "formatted_mentions"]
+            excluded_metadata = ["id", "response", "reason", "emotion", "innerthought", "channel", "formatted_mentions", "Unixtimestamp"]
 
             entry_details = []
             for key, value in entry.items():

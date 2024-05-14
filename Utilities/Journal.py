@@ -27,6 +27,7 @@ class Journal:
         except Exception as e:
             print(f"Exception occurred {e}")
         self.journal_to_db()
+        return self.results
 
     def write_entry(self):
         collection = 'journal_log_table'

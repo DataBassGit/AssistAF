@@ -91,6 +91,10 @@ class Chatbot:
         await self.handle_reflect_agent_decision()
 
         await self.save_memories()
+        # write journal
+        journal = await self.memory.check_journal()
+        if journal:
+            await self.ui.send_message(1, journal)
 
     async def run_agent(self, agent_name):
         self.logger.log(f"Running {agent_name.capitalize()} Agent... Message:{self.message['message']}", 'info',
@@ -101,13 +105,13 @@ class Chatbot:
         agent = self.agents[agent_name]
         # agent.load_additional_data(self.messages, self.chosen_msg_index, self.chat_history,
         #                            self.user_history, memories, self.cognition)
-        agent_vars = {'messages': self.messages, # batch_messages
-                      'chosen_msg_index': self.chosen_msg_index, # selected_message
-                      'chat_history': self.chat_history, # chat_history
-                      'user_history': self.user_history, # user_history
-                      'memories': memories, # memories
-                      'journals': journals, # journals
-                      'cognition': self.cognition} # cognition
+        agent_vars = {'messages': self.messages,  # batch_messages
+                      'chosen_msg_index': self.chosen_msg_index,  # selected_message
+                      'chat_history': self.chat_history,  # chat_history
+                      'user_history': self.user_history,  # user_history
+                      'memories': memories,  # memories
+                      'journals': journals,  # journals
+                      'cognition': self.cognition}  # cognition
         self.cognition[agent_name] = agent.run(**agent_vars)
 
         # Send result to Brain Channel
