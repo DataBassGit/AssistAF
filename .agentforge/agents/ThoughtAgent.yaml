@@ -8,11 +8,21 @@ Prompts:
     
     <setting>
     Location: {location}
-    Setting: {setting}
-    Recent Chat History: {chat_history}
-    {new_messages}
+    Setting: 
+    {setting}
     
-    Additional related history: {user_history}
+    
+    Recent Chat History:
+    <chat log>
+    {chat_history}
+    {new_messages}
+    </chat log>
+    
+    Additional related history: 
+    <user specific history messages>
+    (these are messages from the user that are related to the topic being discussed that you remember. They could be from any channel and are not necessarily in any order. They are provided for additional context and history. You should use them to enhance your answer.)
+    {user_history}
+    </user specific history messages>
     </setting>
 
   Instruction: |+

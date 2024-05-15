@@ -92,11 +92,9 @@ class MessageParser:
             message_text = message.get('message', 'N/A')
 
             formatted_message = (
-                f"Timestamp: {timestamp}\n"
-                f"Author: {author}\n"
-                f"Channel: {channel_name}\n"
-                f"Channel ID: {channel_id}\n"
                 f"Message: \"{message_text}\"\n"
+                f"User: {author}\n"
+                f"Timestamp: {timestamp}\n"
             )
             formatted_messages.append(formatted_message)
 
@@ -126,15 +124,15 @@ class MessageParser:
                 document = history['documents'][document_id]
 
             entry_details = []
+            if document:
+                entry_details.append(f"Message: {document}")
+
             for key, value in entry.items():
-                if key.lower() not in ["id", "Unixtimestamp"]:  # Optionally skip 'id'
+                if key.lower() not in ["id", "reason", "unixtimestamp", "mentions"]:  # Optionally skip 'id'
                     if key.lower() != "inner thought":
                         entry_details.append(f"{key.capitalize()}: {value}")
                         continue
                     entry_details.append(f"{key.capitalize()}: {value}")
-
-            if document:
-                entry_details.append(f"Message: {document}")
 
             formatted_entry = "\n".join(entry_details)
             formatted_entries.append(formatted_entry + "\n")
@@ -162,18 +160,30 @@ class MessageParser:
             if 'documents' in history and 0 <= document_id < len(history['documents']):
                 document = history['documents'][document_id]
 
-            excluded_metadata = ["id", "response", "reason", "emotion", "innerthought", "channel", "formatted_mentions", "Unixtimestamp"]
-
             entry_details = []
+
+            if document:
+                entry_details.append(f"Message: {document}")
+
+            excluded_metadata = [
+                "id",
+                "response",
+                "reason",
+                "emotion",
+                "inner thought",
+                "channel",
+                "formatted_mentions",
+                "unixtimestamp",
+                "mentions",
+                "innerthought",
+                "categories"]
+
             for key, value in entry.items():
                 if key.lower() not in excluded_metadata:
                     entry_details.append(f"{key.capitalize()}: {value}")
 
                 if key.lower() == "channel":
                     channel = value
-
-            if document:
-                entry_details.append(f"Message: {document}")
 
             formatted_entry = "\n".join(entry_details)
             formatted_entries.append(formatted_entry + "\n")
@@ -193,7 +203,7 @@ class MessageParser:
             str: Formatted general history entries.
         """
         channel_entries = {}
-        excluded_metadata = ["id", "response", "reason", "emotion", "innerthought", "formatted_mentions"]
+        excluded_metadata = ["id", "response", "reason", "unixtimestamp", "mentions"]
 
         # Group entries by channel
         for i, entry in enumerate(history.get('metadatas', []), start=1):
@@ -202,17 +212,17 @@ class MessageParser:
             if 'documents' in history and 0 <= document_id < len(history['documents']):
                 document = history['documents'][document_id]
 
+            entry_details = []
+            if document:
+                entry_details.append(f"Message: {document}")
+
             channel = entry.get("channel", "")
             if channel not in channel_entries:
                 channel_entries[channel] = []
 
-            entry_details = []
             for key, value in entry.items():
                 if key.lower() not in excluded_metadata:
                     entry_details.append(f"{key.capitalize()}: {value}")
-
-            if document:
-                entry_details.append(f"Message: {document}")
 
             channel_entries[channel].append((entry.get("id", 0), "\n".join(entry_details)))
 

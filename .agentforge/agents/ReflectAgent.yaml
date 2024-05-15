@@ -8,15 +8,27 @@ Prompts:
     
     <setting>
     Location: {location}
-    Setting: {setting}
-    Recent Chat History: {chat_history}
-    {new_messages}
+    Setting: 
+    {setting}
     
-    Additional related history: {user_history}
+    
+    Recent Chat History:
+    <chat log>
+    {chat_history}
+    {new_messages}
+    </chat log>
+    
+    Additional related chat history:
+    <user specific history messages>
+    (these are messages from the user that are related to the topic being discussed that you remember. They could be from any channel and are not necessarily in any order. They are provided for additional context and history. You should use them to enhance your answer.)
+    {user_history}
+    </user specific history messages>
     </setting>
 
-    You remember the following: 
+    You remember the following:
+    
     <Memory Block>
+    (these are memories that are related to the topic being discussed that you remember. They could be from any channel and any user, and are not necessarily in any order. They are provided for additional context and history. You should use them to enhance your answer.)
     {memories}
     </Memory Block>
 
@@ -36,7 +48,7 @@ Prompts:
     <Instructions>
     You must interface with the chat system by completing the following form, inside <form></form> XML tags. Failure to adhere to the format will result in an error.
     
-    To fill out this form, you should first choose if the character will respond, change their response, or nothing. Then, you write a reason for your choice. You must always give a reason for your choice. The author will decide based on your choice and reason. Be sure to follow the form template and do not generate a new response. Your only job is to provide a choice and your reason. Fill in your responses below.
+    To fill out this form, you should first choose if the character will respond, change their response, or nothing. This can also be used to improve the response through feedback. Then, you write a reason for your choice. You must always give a reason for your choice. The author will decide based on your choice and reason. Be sure to follow the form template and do not generate a new response. Your only job is to provide a choice and your reason. Fill in your responses below.
     <Instructions>
 
     <form>

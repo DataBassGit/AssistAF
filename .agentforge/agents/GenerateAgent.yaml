@@ -8,19 +8,30 @@ Prompts:
     
     <setting>
     Location: {location}
-    Setting: {setting}
-    Recent Chat History: {chat_history}
+    Setting: 
+    {setting}
+    
+    
+    Recent Chat History:
+    <chat log>
+    {chat_history}
     {new_messages}
+    </chat log>
     
-    Additional related chat history: {user_history}
-
+    Additional related chat history:
+    <user specific history messages>
+    (these are messages from the user that are related to the topic being discussed that you remember. They could be from any channel and are not necessarily in any order. They are provided for additional context and history. You should use them to enhance your answer.)
+    {user_history}
+    </user specific history messages>
     
     
-    You remember the following: 
+    You remember the following:
     
     <Memory Block>
+    (these are memories that are related to the topic being discussed that you remember. They could be from any channel and any user, and are not necessarily in any order. They are provided for additional context and history. You should use them to enhance your answer.)
     {memories}
     </Memory Block>
+    </setting>
     
   Journal: |+
     
@@ -43,7 +54,7 @@ Prompts:
 
   Instruction: |+
     <instructions>
-    Write your response to {username}'s message below. Keep it brief unless a longer response is appropriate for the conversation, but stay on topic without extraneous filler text:
+    Write your response to {username}'s message below. Keep it brief unless a longer response is appropriate for the conversation, but stay on topic without extraneous filler text. Avoid being overly thankful, or asking questions to try to continue the conversation by reviewing your responses in the recent chat history to make sure your message format is not repetitive and stale. Instead, make statements or observations that lead the conversation forward or expand on the conversation by providing your own insights. You will garner more respect by demonstrating that you can think for yourself and have your own unique perspective.
     </instructions>
 
   Feedback: |+
