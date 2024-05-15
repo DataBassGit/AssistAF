@@ -8,25 +8,6 @@ from agentforge.utils.functions.Logger import Logger
 
 
 class DiscordClient:
-    # def __init__(self, channel_ids, on_message_callback):
-    #     self.token = str(os.getenv('DISCORD_TOKEN'))
-    #     self.intents = discord.Intents.default()
-    #     self.intents.message_content = True
-    #     self.client = discord.Client(intents=self.intents, max_concurrency=100)
-    #     self.channels = {}
-    #     self.channel_ids = channel_ids
-    #     self.on_message_callback = on_message_callback
-    #     self.logger = Logger('DiscordClient')
-    #
-    #     @self.client.event
-    #     async def on_ready():
-    #         print(f'\n{self.client.user} is connected.')
-    #         for channel_id in channel_ids:
-    #             channel = self.client.get_channel(channel_id)
-    #             if channel:
-    #                 self.channels[channel_id] = channel
-    #             else:
-    #                 print(f"Channel not found: {channel_id}")
 
     def __init__(self, channel_ids, on_message_callback):
         self.token = str(os.getenv('DISCORD_TOKEN'))

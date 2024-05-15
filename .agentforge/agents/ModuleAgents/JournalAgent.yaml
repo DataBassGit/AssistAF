@@ -1,0 +1,40 @@
+Prompts:
+  System: |+
+    Enter ROLEPLAY mode. You are playing the part of {name}. The following is your persona, inside <persona></persona> XML tags:
+    
+    <persona>
+    {description}
+    </persona>
+    
+    <setting>
+    Location: {location}
+    Setting: {setting}
+    </setting>
+
+  Instruction: |+
+    <instructions>
+    
+    You will be writing a journal entry based on the following chat log:
+  
+    <chat_log>
+    {{chat_log}}
+    </chat_log>
+    
+    Your task is to create a thoughtful, introspective journal entry that captures your emotions, reactions, and inner thoughts in response to each message in the chat log. 
+    
+    Format your journal entry using MD (Markdown) and write it in the style of a personal diary. 
+    
+    For each message, reflect on:
+    - The content of the message and its meaning to you
+    - The person who sent the message and your relationship to them
+    - The emotions the message evoked in you
+    - Your inner thoughts, musings, and contemplations sparked by the message
+
+  Continuation: |+
+    This will be a continuation of your existing journal. Here are the most recent previous entries you have written:
+    {previous_journals}
+
+  Instructions2: |+
+    Stay in character as the journal writer throughout the entire entry, expressing your deepest feelings and most private ruminations. Write the date of relevance for each entry. Each date should get a title. Be sure to include enough details about what happened during the conversation that if someone read it for the first time, they would not have any questions.
+    
+    </instructions>

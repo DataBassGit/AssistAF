@@ -75,7 +75,11 @@ ModelSettings:
 #  API: oobabooga_api
 #  Model: oobabooga
 #  API: ollama_api
+<<<<<<< HEAD
 #  Model: TestModel
+=======
+#  Model: Llama3GGUF
+>>>>>>> dev
   Params:
     max_new_tokens: 4000
     temperature: 0.5
