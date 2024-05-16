@@ -114,37 +114,6 @@ class Chatbot:
                       'cognition': self.cognition}  # cognition
         self.cognition[agent_name] = agent.run(**agent_vars)
 
-<<<<<<< HEAD
-        # User History
-        #User history is cutting off some messages due to the if/else logic at line 402.
-        size = self.storage.count_collection(f"a{self.author_name}-chat_history")
-        qsize = max(size - (size - 5), 1)
-        user_log = ""
-        print(f"qsize: {qsize}")
-        user_history = self.storage.query_memory(collection_name=f"a{self.author_name}-chat_history", query=message,
-                                                 num_results=qsize)
-        print(f"User history: {user_history}")
-
-        if size == 0:
-            user_log = "No Results!"
-        else:
-            if 'metadatas' in user_history and isinstance(user_history['metadatas'], list):
-                min_id = min(entry['id'] for entry in user_history['metadatas'] if entry)
-                for entry_list in user_history['metadatas']:
-                    if entry_list:
-                        entry = entry_list
-                        timestamp = entry.get('timestamp', '')
-                        user = entry.get('User', '')
-                        document_index = entry.get('id', 0) - min_id
-                        if ('documents' in user_history and isinstance(user_history['documents'], list)
-                                and 0 <= document_index < len(user_history['documents'])):
-                            document = user_history['documents'][document_index]
-                            user_log += f"{timestamp} - {user} : {document}\n"
-                        else:
-                            print(f"Skipping document with id {entry.get('id', 0)} as it is out of range or missing.")
-            else:
-                print("Invalid user history format.")
-=======
         # Send result to Brain Channel
         result_message = f"{agent_name.capitalize()} Agent:\n```{str(self.cognition[agent_name]['result'])}```"
         await self.ui.send_message(1, result_message)
@@ -152,7 +121,6 @@ class Chatbot:
     async def handle_reflect_agent_decision(self):
         max_iterations = 2
         iteration_count = 0
->>>>>>> dev
 
         while True:
             iteration_count += 1

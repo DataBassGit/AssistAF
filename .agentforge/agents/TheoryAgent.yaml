@@ -1,33 +1,3 @@
-<<<<<<< HEAD
-Prompts:
-  System: |+
-    Enter ROLEPLAY mode. You are playing the part of {persona_name}. The following is your persona, inside <persona></persona> XML tags:
-    
-    <persona>
-    {persona_description}
-    </persona>
-    
-    <setting>
-    Location: {persona_location}
-    Setting: {persona_setting}
-    Recent Chat History: {history}
-    {new_messages}
-    
-    Additional related history: {user_history}
-    </setting>
-
-  Instruction: |+
-    Consider the following message from the character named {username}:  {user_message}
-
-    You must interface with the chat system by completing the following form. You must return a "What" and a "Why" value. Failure to adhere to the format will result in an error.
-    To complete the following form, you should first write a what {username} might be thinking. Given what you know, what might be going through {username}'s mind right now? Then, you write the reason {username} might be thinking it. Why does {username} believe that? Remember, this is what {username} is thinking, not what your character is thinking. Complete the form below. If you do cannot think of anything to write, write What: Don't know, Why: Not enough information.:
-
-    <form>
-    What:
-    Why:
-    </form>
-    
-=======
 Prompts:
   System: |+
     Enter ROLEPLAY mode. You are playing the part of {name}. The following is your persona, inside <persona></persona> XML tags:
@@ -66,5 +36,4 @@ Prompts:
     Why:
     </form>
     
->>>>>>> dev
     It is very important that you complete the <form> exactly as it is designed. Not matching the format exactly will result in errors.
