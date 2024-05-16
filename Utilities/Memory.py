@@ -31,11 +31,16 @@ class Memory:
 
     async def save_to_collection(self, collection_name: str, chat_message: dict, response_message: str,
                                  metadata_extra=None):
-        collection_size = self.storage.count_collection(collection_name)
-        memory_id = [str(collection_size + 1)]
+        collection_size = self.storage.search_metadata_min_max(collection_name, 'id', 'max')
+        if collection_size is None or "target" not in collection_size:
+            memory_id = ["1"]
+            collection_int = 1
+        else:
+            memory_id = [str(collection_size["target"] + 1 if collection_size["target"] is not None else 1)]
+            collection_int = collection_size["target"] + 1
 
         metadata = {
-            "id": collection_size + 1,
+            "id": collection_int,
             "Response": response_message,
             "Emotion": self.cognition["thought"].get("Emotion"),
             "InnerThought": self.cognition["thought"].get("Inner Thought"),
