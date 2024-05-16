@@ -38,6 +38,8 @@ ModelLibrary:
     models:
       gemini-pro:
         name: gemini-pro
+      gemini-1.5-pro:
+        name: gemini-1.5-pro-latest
   oobabooga_api:
     module: "oobabooga"
     class: "Oobabooga"
@@ -64,14 +66,14 @@ ModelLibrary:
 
 # Default settings for all models unless overridden
 ModelSettings:
-#  API: gemini_api
-#  Model: gemini-pro
+  API: gemini_api
+  Model: gemini-1.5-pro
 #  API: claude_old
 #  Model: claude
 #  API: openai_api
 #  Model: smart_fast_model
-  API: claude3_api
-  Model: claude-3
+#  API: claude3_api
+#  Model: claude-3
 #  API: oobabooga_api
 #  Model: oobabooga
 #  API: ollama_api
