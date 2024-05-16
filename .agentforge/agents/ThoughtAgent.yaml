@@ -15,6 +15,7 @@ Prompts:
     Recent Chat History:
     <chat log>
     {chat_history}
+    =====
     {new_messages}
     </chat log>
     
