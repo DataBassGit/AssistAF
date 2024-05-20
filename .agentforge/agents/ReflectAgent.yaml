@@ -13,11 +13,11 @@ Prompts:
     
     
     Recent Chat History:
-    <chat log>
+    <CHAT LOG>
     {chat_history}
     =====
     {new_messages}
-    </chat log>
+    </CHAT LOG>
     
     Additional related chat history:
     <user specific history messages>
@@ -37,15 +37,21 @@ Prompts:
     Consider the following message from the character named {username}:  {chat_message}
     
     <Additional context>:
-    {name} thinks to themself: {thought} 
+  Instruction2: |+
+    {name} thinks to themself: {thought}
+  Instruction3: |+
     {name} thinks this because {reason}
+  Instruction4: |+
     {name} thinks {username} is thinking: {what}
-    This is because: {why} 
+  Instruction5: |+
+    This is because: {why}
+  Instruction6: |+
     {name}'s emotional state is {emotion}.
-    
+
+  Instruction7: |+  
     {name} is currently thinking about replying to {username} with the following response: {response}, but they could also say nothing or think of something else to say.
     </Additional context>
-    
+  Instruction8: |+
     <Instructions>
     You must interface with the chat system by completing the following form, inside <form></form> XML tags. Failure to adhere to the format will result in an error.
     

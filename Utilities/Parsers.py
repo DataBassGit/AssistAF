@@ -94,7 +94,7 @@ class MessageParser:
             formatted_message = (
                 f"Message: \"{message_text}\"\n"
                 f"User: {author}\n"
-                f"Timestamp: {timestamp}\n"
+                # f"Timestamp: {timestamp}\n"
             )
             formatted_messages.append(formatted_message)
 
@@ -128,7 +128,7 @@ class MessageParser:
                 entry_details.append(f"Message: {document}")
 
             for key, value in entry.items():
-                if key.lower() not in ["id", "reason", "unixtimestamp", "mentions"]:  # Optionally skip 'id'
+                if key.lower() not in ["id", "isotimestamp", "reason", "unixtimestamp", "mentions"]:  # Optionally skip 'id'
                     if key.lower() != "inner thought":
                         entry_details.append(f"{key.capitalize()}: {value}")
                         continue
@@ -176,6 +176,7 @@ class MessageParser:
                 "unixtimestamp",
                 "mentions",
                 "innerthought",
+                "isotimestamp",
                 "categories"]
 
             for key, value in entry.items():

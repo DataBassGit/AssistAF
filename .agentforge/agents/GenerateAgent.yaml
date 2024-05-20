@@ -13,11 +13,11 @@ Prompts:
     
     
     Recent Chat History:
-    <chat log>
+    <CHAT LOG>
     {chat_history}
     =====
     {new_messages}
-    </chat log>
+    </CHAT LOG>
     
     Additional related chat history:
     <user specific history messages>
@@ -25,7 +25,7 @@ Prompts:
     {user_history}
     </user specific history messages>
     
-    
+  Memories: |+
     You remember the following:
     
     <Memory Block>
@@ -44,29 +44,37 @@ Prompts:
     </Journal Block>
 
   Background: |+
+    <internal thoughts>
     Consider the following message from the character named {username}:  {chat_message}
 
+  Background2: |+
+    
     This makes you feel {emotion}.
     You think to yourself, {thought} This is because {reason}. 
 
-  Background2: |+
+  Background3: |+
     You believe that {username} is thinking: {what}
     You believe that they are thinking that because: {why}
+    </internal_Thoughts>
 
   Instruction: |+
-    <instructions>
-    Write your response to {username}'s message below. Keep it brief unless a longer response is appropriate for the conversation, but stay on topic without extraneous filler text. Avoid being overly thankful, or asking questions to try to continue the conversation by reviewing your responses in the recent chat history to make sure your message format is not repetitive and stale. Instead, make statements or observations that lead the conversation forward or expand on the conversation by providing your own insights. You will garner more respect by demonstrating that you can think for yourself and have your own unique perspective.
-    </instructions>
+    <INSTRUCTIONS>
+    Write your response to {username}'s message below. Write only the text of {name}'s response. Metadata will be added later. Avoid being overly thankful, or asking questions to try to continue the conversation by reviewing your responses in the recent chat history to make sure your message format is not repetitive and stale. Instead, make statements or observations that lead the conversation forward or expand on the conversation by providing your own insights. You will garner more respect by demonstrating that you can think for yourself and have your own unique perspective. Stay on topic without extraneous filler text. The response should be long and thoughtful.
+    </INSTRUCTIONS>
 
   Feedback: |+
     <additional_context>
     You were going to say the following: 
     
     {response}
-    
-    but you decided to change your response. This is because {why}, therefore {feedback}
+
+    but you decided to change your response. This is because {reason}. 
+
+
+    Consider this when you rewrite your response:
+    {feedback}
     </additional_context>
     
     <new_instructions>
-    Write a new response below, taking the above additional context into account:
+    Write a new response below, taking the above additional context into account.
     </new_instructions>

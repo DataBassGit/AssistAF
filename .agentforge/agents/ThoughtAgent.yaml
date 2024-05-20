@@ -13,11 +13,11 @@ Prompts:
     
     
     Recent Chat History:
-    <chat log>
+    <CHAT LOG>
     {chat_history}
     =====
     {new_messages}
-    </chat log>
+    </CHAT LOG>
     
     Additional related history: 
     <user specific history messages>
